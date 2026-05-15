@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx --yes create-next-app@14 . --typescript --tailwind --eslint --app --no-src-dir --import-alias \"@/*\" --use-npm)",
+      "Bash(mkdir -p /tmp/atelier-stash)",
+      "Bash(mv README.md README.atelier.md src.original public.original /tmp/atelier-stash/)",
+      "Bash(mv .claude /tmp/atelier-stash/.claude)"
+    ]
+  }
+}
