@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 // /verify/* is intentionally public so employers can validate certificates without an account.
 const PROTECTED_PREFIXES = ["/companies"];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Always allow auth endpoints and assets.
