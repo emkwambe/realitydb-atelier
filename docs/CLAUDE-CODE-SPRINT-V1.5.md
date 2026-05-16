@@ -1,9 +1,12 @@
 # RealityDB Atelier — Claude Code Session
-## Read First (mandatory)
+## Read First (mandatory -- read ALL before writing any code)
 C:\Users\HP\Documents\realitydb-internal\skills\REALITYDB-SKILL.md
 C:\Users\HP\Documents\atelier\CLAUDE.md
 C:\Users\HP\Documents\atelier\docs\PRD-TRD-v2.md
+C:\Users\HP\Documents\atelier\docs\HANDOVER-2026-05-15.md
 C:\Users\HP\Documents\atelier\lib\pglite.ts
+C:\Users\HP\Documents\atelier\content\companies\novapay\exercises.ts
+C:\Users\HP\Documents\atelier\content\companies\novapay\rubric.ts
 
 ---
 
