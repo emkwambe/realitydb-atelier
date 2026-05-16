@@ -35,7 +35,10 @@ export async function initPGlite(company: string): Promise<void> {
       if (res.ok) {
         const sql = await res.text();
         if (sql.trim().length > 0) {
+          console.log("[pglite] SQL length:", sql.length, "chars");
+          console.log("[pglite] First 200 chars:", sql.substring(0, 200));
           await db.exec(sql);
+          console.log("[pglite] exec() completed successfully");
         }
       } else {
         // Dataset not yet generated — leave an empty database so the UI still loads.
