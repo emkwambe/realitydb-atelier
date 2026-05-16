@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { SiteHeader } from "@/components/layout/SiteHeader";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -46,35 +46,6 @@ export default function RootLayout({
         </div>
       </body>
     </html>
-  );
-}
-
-function SiteHeader() {
-  return (
-    <header className="sticky top-0 z-40 border-b border-[#1e293b] bg-[#0a0f1a]/85 backdrop-blur supports-[backdrop-filter]:bg-[#0a0f1a]/70">
-      <div className="mx-auto flex h-14 max-w-[1280px] items-center justify-between px-6">
-        <Link
-          href="/"
-          className="font-mono text-[15px] tracking-tight text-[#06d6a0] hover:opacity-90"
-        >
-          RealityDB Atelier
-        </Link>
-        <nav className="flex items-center gap-6 text-sm text-[#e2e8f0]/80">
-          <Link href="/companies/novapay" className="hover:text-[#e2e8f0]">
-            Companies
-          </Link>
-          <Link href="/pricing" className="hover:text-[#e2e8f0]">
-            Pricing
-          </Link>
-          <Link
-            href="/auth/login"
-            className="rounded-md border border-[#1e293b] px-3 py-1.5 text-[#e2e8f0] hover:border-[#06d6a0] hover:text-[#06d6a0]"
-          >
-            Sign In
-          </Link>
-        </nav>
-      </div>
-    </header>
   );
 }
 

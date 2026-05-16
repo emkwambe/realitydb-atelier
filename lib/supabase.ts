@@ -1,24 +1,14 @@
+import { createBrowserClient } from "@supabase/ssr";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 let browserClient: SupabaseClient | null = null;
 
-/**
- * Browser-side Supabase client (singleton).
- * Safe to call from client components. Returns null when env vars are not set,
- * so the UI can fall back to a "configure Supabase" message without crashing.
- */
 export function getSupabaseBrowserClient(): SupabaseClient | null {
   if (browserClient) return browserClient;
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return null;
-  browserClient = createClient(url, key, {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true,
-    },
-  });
+  browserClient = createBrowserClient(url, key);
   return browserClient;
 }
 
@@ -27,4 +17,20 @@ export function isSupabaseConfigured(): boolean {
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   );
+}
+
+export function getSupabaseAdminClient(): SupabaseClient | null {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) return null;
+  return createClient(url, serviceKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
+export function getSiteUrl(): string {
+  const fromEnv = process.env.NEXT_PUBLIC_SITE_URL;
+  if (fromEnv) return fromEnv.replace(/\/$/, "");
+  if (typeof window !== "undefined") return window.location.origin;
+  return "https://atelier.realitydb.dev";
 }
