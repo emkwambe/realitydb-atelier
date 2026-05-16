@@ -8,7 +8,15 @@ import { ExercisePanel } from "@/components/exercise/ExercisePanel";
 import { SqlEditor } from "@/components/exercise/SqlEditor";
 import { ResultsTable } from "@/components/exercise/ResultsTable";
 import { SchemaExplorer } from "@/components/exercise/SchemaExplorer";
-import { initPGlite, type QueryResult } from "@/lib/pglite";
+import { DatasetSwitcher } from "@/components/exercise/DatasetSwitcher";
+import { ComparisonPanel } from "@/components/exercise/ComparisonPanel";
+import {
+  getInitError,
+  initPGlite,
+  switchDataset,
+  type DatasetVariant,
+  type QueryResult,
+} from "@/lib/pglite";
 import type { Exercise } from "@/lib/grading";
 
 interface HistoryItem {
@@ -26,6 +34,9 @@ interface Props {
   company: string;
 }
 
+const DATASET_KEY = (company: string) => `atelier:${company}:dataset`;
+const VISITED_KEY = (company: string) => `atelier:${company}:visitedScenarios`;
+
 export function ExerciseWorkbench({
   exercise,
   exerciseNumber,
@@ -40,21 +51,51 @@ export function ExerciseWorkbench({
   const [lastResult, setLastResult] = useState<QueryResult | null>(null);
   const [editorSql, setEditorSql] = useState("");
   const [tab, setTab] = useState("query");
+  const [dataset, setDataset] = useState<DatasetVariant>("baseline");
+  const [switching, setSwitching] = useState(false);
+  const [visited, setVisited] = useState<Set<DatasetVariant>>(
+    () => new Set<DatasetVariant>(["baseline"])
+  );
 
   const storageKey = `atelier:${company}:progress`;
   const [completed, setCompleted] = useState<Record<number, boolean>>({});
 
+  // Restore prior dataset choice
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(
+        DATASET_KEY(company)
+      ) as DatasetVariant | null;
+      if (
+        stored === "baseline" ||
+        stored === "scenario-a" ||
+        stored === "scenario-b"
+      ) {
+        setDataset(stored);
+      }
+      const visitRaw = localStorage.getItem(VISITED_KEY(company));
+      if (visitRaw) {
+        const arr = JSON.parse(visitRaw) as DatasetVariant[];
+        setVisited(new Set(arr));
+      }
+    } catch {}
+  }, [company]);
+
   useEffect(() => {
     (async () => {
       try {
-        await initPGlite(company);
+        await initPGlite(company, dataset);
+        const err = getInitError();
+        if (err) setInitError(err);
+        else setInitError(null);
         setDbReady(true);
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
         setInitError(msg);
+        setDbReady(true);
       }
     })();
-  }, [company]);
+  }, [company, dataset]);
 
   useEffect(() => {
     try {
@@ -78,9 +119,42 @@ export function ExerciseWorkbench({
     });
   }, [exercise.id, storageKey]);
 
+  const onSwitchDataset = useCallback(
+    async (next: DatasetVariant) => {
+      if (next === dataset || switching) return;
+      setSwitching(true);
+      setDbReady(false);
+      try {
+        await switchDataset(company, next);
+        setInitError(getInitError());
+      } catch (e) {
+        setInitError(e instanceof Error ? e.message : String(e));
+      }
+      setDataset(next);
+      setHistory([]);
+      setLastResult(null);
+      const newVisited = new Set(visited);
+      newVisited.add(next);
+      setVisited(newVisited);
+      try {
+        localStorage.setItem(DATASET_KEY(company), next);
+        localStorage.setItem(
+          VISITED_KEY(company),
+          JSON.stringify(Array.from(newVisited))
+        );
+      } catch {}
+      setSwitching(false);
+      setDbReady(true);
+    },
+    [company, dataset, switching, visited]
+  );
+
+  const showComparison = visited.size >= 2;
+
   const allCompleted =
-    Object.values({ ...completed, [exercise.id]: completed[exercise.id] }).filter(Boolean).length >=
-      totalExercises ||
+    Object.values({ ...completed, [exercise.id]: completed[exercise.id] }).filter(
+      Boolean
+    ).length >= totalExercises ||
     (exercise.id === totalExercises && completed[exercise.id]);
 
   return (
@@ -92,7 +166,7 @@ export function ExerciseWorkbench({
             Initializing PostgreSQL in your browser…
           </p>
           <p className="text-xs text-[#64748b]">
-            Loading NovaPay dataset (PGlite WASM)
+            Loading NovaPay {dataset} (PGlite WASM)
           </p>
           {initError && (
             <p className="mt-4 max-w-md text-center text-xs text-[#ef4444]">
@@ -101,6 +175,12 @@ export function ExerciseWorkbench({
           )}
         </div>
       )}
+
+      <DatasetSwitcher
+        current={dataset}
+        switching={switching}
+        onSwitch={onSwitchDataset}
+      />
 
       <div className="flex flex-1 overflow-hidden">
         <aside className="w-[40%] min-w-[320px] border-r border-[#1e293b] bg-[#111827]">
@@ -130,6 +210,11 @@ export function ExerciseWorkbench({
               <TabsTrigger value="history" className="rounded-none">
                 History {history.length > 0 && `(${history.length})`}
               </TabsTrigger>
+              {showComparison && (
+                <TabsTrigger value="compare" className="rounded-none">
+                  Compare
+                </TabsTrigger>
+              )}
             </TabsList>
 
             <TabsContent value="query" className="m-0 flex flex-1 flex-col overflow-hidden">
@@ -183,6 +268,21 @@ export function ExerciseWorkbench({
                 </ul>
               )}
             </TabsContent>
+
+            {showComparison && (
+              <TabsContent value="compare" className="m-0 flex-1 overflow-y-auto p-4">
+                <ComparisonPanel />
+                <p className="mt-4 text-[11px] leading-relaxed text-[#64748b]">
+                  Numbers are pre-computed from{" "}
+                  <code className="font-mono text-[#06d6a0]">
+                    public/data/novapay-comparison-ab.json
+                  </code>
+                  . Run the same queries on each dataset to verify them
+                  yourself — the briefing rewards students who say what they
+                  tested and what they observed.
+                </p>
+              </TabsContent>
+            )}
           </Tabs>
         </section>
       </div>

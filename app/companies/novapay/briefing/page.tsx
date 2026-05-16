@@ -5,30 +5,34 @@ import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronRight, FileText, Loader2 } from "lucide-react";
 import { novaPayExercises } from "@/content/companies/novapay/exercises";
 import { novaPayRubric } from "@/content/companies/novapay/rubric";
+import { NOVAPAY_SCENARIOS } from "@/content/companies/novapay/scenarios";
 
 const STORAGE_KEY = "atelier:novapay:briefing";
 const RESULT_KEY = "atelier:novapay:result";
+const DATASET_KEY = "atelier:novapay:dataset";
+const VISITED_KEY = "atelier:novapay:visitedScenarios";
 
-const SCQA = [
+// CEO Briefing v2 — four parts. Same prompt that grading sees.
+const PARTS = [
   {
-    letter: "S",
-    name: "Situation",
-    body: "What is true right now — facts from your queries.",
+    letter: "1",
+    name: "Diagnosis",
+    body: "What did you find in the baseline data? Segment by tier, name the smoking gun, cite numbers.",
   },
   {
-    letter: "C",
-    name: "Complication",
-    body: "What has changed or is at risk.",
+    letter: "2",
+    name: "Intervention",
+    body: "Which scenario did you test, and why that one? Quantify what changed vs. baseline.",
   },
   {
-    letter: "Q",
-    name: "Question",
-    body: "The decision that needs to be made.",
+    letter: "3",
+    name: "Decision",
+    body: "What do you recommend? Include cost, payback period, and the trade-off you accept.",
   },
   {
-    letter: "A",
-    name: "Answer",
-    body: "Your recommendation with supporting evidence.",
+    letter: "4",
+    name: "Epistemic honesty",
+    body: "What can you NOT confirm from this data? How would you resolve it before betting the company?",
   },
 ];
 
@@ -40,6 +44,7 @@ export default function BriefingPage() {
   const [rubricOpen, setRubricOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [scenariosTested, setScenariosTested] = useState<string[]>([]);
 
   useEffect(() => {
     try {
@@ -48,6 +53,14 @@ export default function BriefingPage() {
         const parsed = JSON.parse(raw);
         setText(parsed.text ?? "");
         setCitations(parsed.citations ?? []);
+      }
+      const visited = localStorage.getItem(VISITED_KEY);
+      if (visited) {
+        const arr = JSON.parse(visited) as string[];
+        setScenariosTested(arr);
+      } else {
+        const cur = localStorage.getItem(DATASET_KEY);
+        if (cur) setScenariosTested([cur]);
       }
     } catch {}
   }, []);
@@ -66,13 +79,13 @@ export default function BriefingPage() {
     [text]
   );
 
-  const inRange = wordCount >= 600 && wordCount <= 800;
-  const overLimit = wordCount > 800;
+  const inRange = wordCount >= 700 && wordCount <= 900;
+  const overLimit = wordCount > 900;
   const countColor = overLimit
     ? "text-[#ef4444]"
     : inRange
-    ? "text-[#06d6a0]"
-    : "text-[#64748b]";
+      ? "text-[#06d6a0]"
+      : "text-[#64748b]";
 
   function toggleCitation(n: number) {
     setCitations((c) =>
@@ -93,6 +106,7 @@ export default function BriefingPage() {
           companyId: "novapay",
           wordCount,
           exercisesCited: citations,
+          scenariosTested,
         }),
       });
       if (!res.ok) {
@@ -116,7 +130,7 @@ export default function BriefingPage() {
     <div className="flex min-h-[calc(100vh-7rem)]">
       <aside
         className={`shrink-0 border-r border-[#1e293b] bg-[#111827] transition-all ${
-          sidebarOpen ? "w-[280px]" : "w-10"
+          sidebarOpen ? "w-[300px]" : "w-10"
         }`}
       >
         <button
@@ -130,10 +144,10 @@ export default function BriefingPage() {
           <div className="space-y-6 p-5">
             <div>
               <h3 className="text-[11px] uppercase tracking-wider text-[#64748b]">
-                SCQA framework
+                Briefing structure (4 parts)
               </h3>
               <ul className="mt-3 space-y-3">
-                {SCQA.map((s) => (
+                {PARTS.map((s) => (
                   <li key={s.letter}>
                     <div className="flex items-center gap-2 text-sm font-medium text-[#e2e8f0]">
                       <span className="inline-flex size-5 items-center justify-center bg-[#06d6a0] font-mono text-[11px] text-[#0a0f1a]">
@@ -146,6 +160,31 @@ export default function BriefingPage() {
                     </p>
                   </li>
                 ))}
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="text-[11px] uppercase tracking-wider text-[#64748b]">
+                Scenarios you visited
+              </h3>
+              <ul className="mt-2 space-y-1">
+                {NOVAPAY_SCENARIOS.map((s) => {
+                  const visited = scenariosTested.includes(s.id);
+                  return (
+                    <li
+                      key={s.id}
+                      className={`flex items-center gap-2 font-mono text-[11px] ${
+                        visited ? "text-[#06d6a0]" : "text-[#64748b]"
+                      }`}
+                    >
+                      <span className="size-1.5 rounded-full bg-current" />
+                      {s.shortLabel}
+                      {!visited && (
+                        <span className="text-[10px] opacity-60">(not tested)</span>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
 
@@ -180,7 +219,7 @@ export default function BriefingPage() {
                 onClick={() => setRubricOpen((v) => !v)}
                 className="flex w-full items-center justify-between text-[11px] uppercase tracking-wider text-[#64748b] hover:text-[#e2e8f0]"
               >
-                <span>Grading rubric</span>
+                <span>Grading rubric (5 axes)</span>
                 {rubricOpen ? (
                   <ChevronDown className="size-3.5" />
                 ) : (
@@ -218,9 +257,9 @@ export default function BriefingPage() {
               CEO Briefing — NovaPay Series B
             </h1>
             <p className="mt-2 text-sm text-[#64748b]">
-              Board meeting in 2 weeks. 600–800 words. SCQA framework. Cite at
-              least 4 exercises by number. Include at least 2 specific numbers
-              from your analysis.
+              Board meeting in 2 weeks. 700–900 words. Four-part structure
+              below. Cite at least four exercises and include numbers from
+              the baseline AND any scenario you tested.
             </p>
           </header>
 
@@ -229,8 +268,8 @@ export default function BriefingPage() {
               value={text}
               onChange={(e) => setText(e.target.value)}
               spellCheck
-              placeholder="Situation: ..."
-              className="block min-h-[500px] w-full resize-y border border-[#1e293b] bg-[#111827] p-5 font-mono text-[14px] leading-relaxed text-[#e2e8f0] outline-none focus:border-[#06d6a0]"
+              placeholder={`1. Diagnosis (what I found in baseline)…\n\n2. Intervention (scenario I tested and why)…\n\n3. Decision (recommendation with cost / payback)…\n\n4. Epistemic honesty (what I cannot confirm yet)…`}
+              className="block min-h-[560px] w-full resize-y border border-[#1e293b] bg-[#111827] p-5 font-mono text-[14px] leading-relaxed text-[#e2e8f0] outline-none focus:border-[#06d6a0]"
             />
           </div>
 
@@ -241,7 +280,8 @@ export default function BriefingPage() {
               {inRange && " · in range"}
             </span>
             <span className="text-[#64748b]">
-              {citations.length} citation(s)
+              {citations.length} citation(s) · {scenariosTested.length}{" "}
+              scenario(s) tested
             </span>
           </div>
 

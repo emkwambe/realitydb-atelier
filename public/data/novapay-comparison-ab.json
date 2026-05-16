@@ -1,0 +1,35 @@
+{
+  "generated_at": "2026-05-16T04:01:17.850Z",
+  "baseline": {
+    "label": "Baseline",
+    "enterprise_churn_pct": 31,
+    "blended_churn_pct": 19.7,
+    "enterprise_mrr_pct": 68.1,
+    "arr_projected_12mo": 2810000,
+    "nrr_enterprise": 85,
+    "payback_months": null,
+    "engineering_cost": null
+  },
+  "scenario_a": {
+    "label": "Scenario A — Multi-currency fix",
+    "enterprise_churn_pct": 10.3,
+    "blended_churn_pct": 16.2,
+    "enterprise_mrr_pct": 72,
+    "arr_projected_12mo": 3420000,
+    "nrr_enterprise": 108,
+    "arr_delta_vs_baseline": 610000,
+    "engineering_cost": 400000,
+    "payback_months": 7.9
+  },
+  "scenario_b": {
+    "label": "Scenario B — SMB-only pivot",
+    "enterprise_churn_pct": 100,
+    "blended_churn_pct": 14,
+    "enterprise_mrr_pct": 0,
+    "arr_projected_12mo": 1180000,
+    "nrr_enterprise": 0,
+    "arr_delta_vs_baseline": -1630000,
+    "engineering_cost": 0,
+    "payback_months": null
+  }
+}

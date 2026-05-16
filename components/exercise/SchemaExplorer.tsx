@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ChevronRight, Database, Search, Loader2 } from "lucide-react";
+import { BookOpen, ChevronRight, Database, Search, Loader2 } from "lucide-react";
 import { initPGlite, runQuery } from "@/lib/pglite";
+import { NOVAPAY_CITATIONS } from "@/content/companies/novapay/citations";
 
 interface ColumnInfo {
   table_name: string;
@@ -163,6 +164,34 @@ export function SchemaExplorer({ company }: { company: string }) {
                         ))}
                       </tbody>
                     </table>
+                    {company === "novapay" && NOVAPAY_CITATIONS[t.name] && (
+                      <div className="mt-3 border-t border-[#1e293b] pt-2">
+                        <div className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-[#06d6a0]">
+                          <BookOpen className="size-3" /> Distribution sources
+                        </div>
+                        <ul className="mt-1 space-y-1.5">
+                          {Object.entries(NOVAPAY_CITATIONS[t.name]).map(
+                            ([col, cite]) => (
+                              <li key={col} className="text-[10px] leading-snug">
+                                <span className="font-mono text-[#e2e8f0]">{col}</span>
+                                <span className="text-[#64748b]"> — {cite.distribution}</span>
+                                <div className="text-[#64748b]">
+                                  Source:{" "}
+                                  <a
+                                    href={cite.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[#06d6a0] hover:underline"
+                                  >
+                                    {cite.source}
+                                  </a>
+                                </div>
+                              </li>
+                            )
+                          )}
+                        </ul>
+                      </div>
+                    )}
                     {t.sampleRows.length > 0 && (
                       <div className="mt-2 overflow-x-auto border border-[#1e293b]">
                         <table className="w-full font-mono text-[11px]">

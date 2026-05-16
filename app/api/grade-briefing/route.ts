@@ -9,6 +9,7 @@ interface RequestBody {
   companyId: string;
   wordCount?: number;
   exercisesCited?: number[];
+  scenariosTested?: string[];
 }
 
 interface AxisGrade {
@@ -24,11 +25,13 @@ interface GradingResponse {
     causal_reasoning: AxisGrade;
     quantification: AxisGrade;
     recommendation: AxisGrade;
+    epistemic_honesty: AxisGrade;
   };
   summary_feedback: string;
   enterprise_churn_found: boolean;
   currency_cause_found: boolean;
   arr_quantified: boolean;
+  scenario_tested: boolean;
 }
 
 const CLAUDE_MODEL = "claude-sonnet-4-6";
@@ -57,12 +60,17 @@ export async function POST(request: Request) {
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
 
-  // Fallback heuristic grade when ANTHROPIC_API_KEY is not configured.
   if (!apiKey) {
-    return NextResponse.json(heuristicGrade(body.briefingText));
+    return NextResponse.json(
+      heuristicGrade(body.briefingText, body.scenariosTested ?? [])
+    );
   }
 
-  const prompt = buildPrompt(body.briefingText, body.exercisesCited ?? []);
+  const prompt = buildPrompt(
+    body.briefingText,
+    body.exercisesCited ?? [],
+    body.scenariosTested ?? []
+  );
 
   try {
     const res = await fetch(ANTHROPIC_URL, {
@@ -74,7 +82,7 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         model: CLAUDE_MODEL,
-        max_tokens: 1500,
+        max_tokens: 1800,
         system:
           "You are a senior business school grader. Respond with strict JSON conforming to the schema described. No prose outside the JSON object.",
         messages: [{ role: "user", content: prompt }],
@@ -99,7 +107,9 @@ export async function POST(request: Request) {
       : "";
     const parsed = extractJson(content);
     if (!parsed) {
-      return NextResponse.json(heuristicGrade(body.briefingText));
+      return NextResponse.json(
+        heuristicGrade(body.briefingText, body.scenariosTested ?? [])
+      );
     }
     return NextResponse.json(parsed);
   } catch (e) {
@@ -111,7 +121,11 @@ export async function POST(request: Request) {
   }
 }
 
-function buildPrompt(text: string, citations: number[]): string {
+function buildPrompt(
+  text: string,
+  citations: number[],
+  scenarios: string[]
+): string {
   const rubric = Object.entries(novaPayRubric.axes)
     .map(
       ([k, v]) => `  - ${k} (${v.maxScore} pts)
@@ -125,7 +139,7 @@ function buildPrompt(text: string, citations: number[]): string {
 THE HIDDEN STORY (do not show this to the student; use it only to grade):
 ${novaPayRubric.hiddenStory}
 
-THE RUBRIC (each axis max 25 points; passing total = ${novaPayRubric.passingScore}):
+THE RUBRIC (each axis max 20 points; passing total = ${novaPayRubric.passingScore}):
 ${rubric}
 
 THE STUDENT'S BRIEFING:
@@ -134,24 +148,27 @@ ${text}
 ---
 
 Exercises the student cites: ${citations.length === 0 ? "(none)" : citations.join(", ")}
+Scenarios the student tested: ${scenarios.length === 0 ? "(none)" : scenarios.join(", ")}
 
 Return ONLY a JSON object with this exact shape:
 {
   "overall_score": <0-100>,
   "passed": <true|false>,
   "axes": {
-    "segmentation":     { "score": <0-25>, "feedback": "<one sentence>" },
-    "causal_reasoning": { "score": <0-25>, "feedback": "<one sentence>" },
-    "quantification":   { "score": <0-25>, "feedback": "<one sentence>" },
-    "recommendation":   { "score": <0-25>, "feedback": "<one sentence>" }
+    "segmentation":      { "score": <0-20>, "feedback": "<one sentence>" },
+    "causal_reasoning":  { "score": <0-20>, "feedback": "<one sentence>" },
+    "quantification":    { "score": <0-20>, "feedback": "<one sentence>" },
+    "recommendation":    { "score": <0-20>, "feedback": "<one sentence>" },
+    "epistemic_honesty": { "score": <0-20>, "feedback": "<one sentence>" }
   },
   "summary_feedback": "<2-3 sentences of overall feedback>",
   "enterprise_churn_found": <true|false>,
   "currency_cause_found": <true|false>,
-  "arr_quantified": <true|false>
+  "arr_quantified": <true|false>,
+  "scenario_tested": <true|false>
 }
 
-overall_score should equal the sum of the four axis scores.`;
+overall_score should equal the sum of the five axis scores.`;
 }
 
 function extractJson(text: string): GradingResponse | null {
@@ -166,7 +183,7 @@ function extractJson(text: string): GradingResponse | null {
 }
 
 // Heuristic fallback so the UI is testable without an API key.
-function heuristicGrade(text: string): GradingResponse {
+function heuristicGrade(text: string, scenarios: string[]): GradingResponse {
   const lower = text.toLowerCase();
   const has = (needles: string[]) => needles.some((n) => lower.includes(n));
   const numbers = (text.match(/\$?\d[\d,.]{1,}/g) ?? []).length;
@@ -180,28 +197,51 @@ function heuristicGrade(text: string): GradingResponse {
   const reco_pass =
     has(["recommend", "ship", "build"]) &&
     has(["multi-currency", "currency support", "fx"]);
+  const honesty_pass =
+    has([
+      "cannot",
+      "can't",
+      "do not know",
+      "don't know",
+      "uncertain",
+      "limitation",
+      "caveat",
+      "would need",
+      "would like",
+    ]) ||
+    has(["correlation is not causation", "synthetic", "not yet"]);
 
   const segmentation: AxisGrade = segmentation_pass
-    ? { score: 20, feedback: "Segments churn by tier and identifies enterprise as the risk." }
-    : { score: 10, feedback: "Treats churn as a blended rate. Segment by tier." };
+    ? { score: 17, feedback: "Segments churn by tier and identifies enterprise as the risk." }
+    : { score: 9, feedback: "Treats churn as a blended rate. Segment by tier." };
 
   const causal_reasoning: AxisGrade = causal_pass
-    ? { score: 19, feedback: "Connects currency support to enterprise churn." }
-    : { score: 8, feedback: "Does not establish a causal link between support tickets and churn." };
+    ? { score: 16, feedback: "Connects currency support to enterprise churn." }
+    : { score: 7, feedback: "Does not establish a causal link between support tickets and churn." };
 
   const quantification: AxisGrade = quant_pass
-    ? { score: 18, feedback: "Cites specific numbers and quantifies ARR at risk." }
-    : { score: 10, feedback: "Add specific numbers — ARR at risk, % revenue, churn delta." };
+    ? { score: 15, feedback: "Cites specific numbers and quantifies ARR at risk." }
+    : { score: 8, feedback: "Add specific numbers — ARR at risk, % revenue, churn delta." };
 
-  const recommendation: AxisGrade = reco_pass
-    ? { score: 18, feedback: "Recommends multi-currency with cost / payback." }
-    : { score: 9, feedback: "Recommendation is generic; specify scope, cost, and payback." };
+  const reco_with_scenario =
+    reco_pass &&
+    (scenarios.includes("scenario-a") || scenarios.includes("scenario-b"));
+  const recommendation: AxisGrade = reco_with_scenario
+    ? { score: 16, feedback: "Recommends multi-currency and ties it to a scenario you tested." }
+    : reco_pass
+      ? { score: 12, feedback: "Recommendation present; test a scenario to back it with the data." }
+      : { score: 7, feedback: "Recommendation is generic; specify scope, cost, payback, and scenario tested." };
+
+  const epistemic_honesty: AxisGrade = honesty_pass
+    ? { score: 16, feedback: "Acknowledges at least one open question or data limit." }
+    : { score: 6, feedback: "Presents every finding as certain. Name one thing the data cannot tell you." };
 
   const overall =
     segmentation.score +
     causal_reasoning.score +
     quantification.score +
-    recommendation.score;
+    recommendation.score +
+    epistemic_honesty.score;
 
   return {
     overall_score: overall,
@@ -211,13 +251,16 @@ function heuristicGrade(text: string): GradingResponse {
       causal_reasoning,
       quantification,
       recommendation,
+      epistemic_honesty,
     },
     summary_feedback:
       overall >= novaPayRubric.passingScore
-        ? "Solid briefing. You identified the segmented churn risk and connected currency support to enterprise loss. Consider tightening the recommendation with a payback ratio."
-        : "The briefing reports growth but misses the enterprise churn signal. Re-segment churn, link currency tickets to it, and quantify ARR at risk over 12 months.",
+        ? "Solid briefing. You identified the segmented churn risk, connected currency support to enterprise loss, and named an open question. Tighten the recommendation with a payback ratio next time."
+        : "The briefing reports growth but misses the enterprise churn signal. Re-segment churn, link currency tickets to it, quantify ARR at risk over 12 months, test a scenario, and name what you cannot yet confirm.",
     enterprise_churn_found: segmentation_pass && causal_pass,
     currency_cause_found: causal_pass,
     arr_quantified: quant_pass,
+    scenario_tested:
+      scenarios.includes("scenario-a") || scenarios.includes("scenario-b"),
   };
 }

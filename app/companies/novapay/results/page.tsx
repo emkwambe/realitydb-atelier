@@ -22,11 +22,13 @@ interface GradingResult {
     causal_reasoning: AxisScore;
     quantification: AxisScore;
     recommendation: AxisScore;
+    epistemic_honesty?: AxisScore;
   };
   summary_feedback: string;
   enterprise_churn_found?: boolean;
   currency_cause_found?: boolean;
   arr_quantified?: boolean;
+  scenario_tested?: boolean;
 }
 
 export default function ResultsPage() {
@@ -151,31 +153,38 @@ export default function ResultsPage() {
               </tr>
             </thead>
             <tbody>
-              {(["segmentation", "causal_reasoning", "quantification", "recommendation"] as const).map(
-                (key) => {
-                  const axis = result.axes[key];
-                  const def = novaPayRubric.axes[key];
-                  return (
-                    <tr key={key} className="border-t border-[#1e293b]/60">
-                      <td className="px-4 py-2 text-[#e2e8f0]">{def.name}</td>
-                      <td
-                        className={`px-4 py-2 text-right ${
-                          axis.score >= def.maxScore * 0.7
-                            ? "text-[#06d6a0]"
-                            : axis.score >= def.maxScore * 0.5
+              {(
+                [
+                  "segmentation",
+                  "causal_reasoning",
+                  "quantification",
+                  "recommendation",
+                  "epistemic_honesty",
+                ] as const
+              ).map((key) => {
+                const axis = result.axes[key];
+                const def = novaPayRubric.axes[key];
+                if (!axis || !def) return null;
+                return (
+                  <tr key={key} className="border-t border-[#1e293b]/60">
+                    <td className="px-4 py-2 text-[#e2e8f0]">{def.name}</td>
+                    <td
+                      className={`px-4 py-2 text-right ${
+                        axis.score >= def.maxScore * 0.7
+                          ? "text-[#06d6a0]"
+                          : axis.score >= def.maxScore * 0.5
                             ? "text-[#f59e0b]"
                             : "text-[#ef4444]"
-                        }`}
-                      >
-                        {axis.score}/{def.maxScore}
-                      </td>
-                      <td className="px-4 py-2 text-[#e2e8f0]/80">
-                        {axis.feedback}
-                      </td>
-                    </tr>
-                  );
-                }
-              )}
+                      }`}
+                    >
+                      {axis.score}/{def.maxScore}
+                    </td>
+                    <td className="px-4 py-2 text-[#e2e8f0]/80">
+                      {axis.feedback}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

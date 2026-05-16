@@ -2,6 +2,8 @@
 
 import { PGlite } from "@electric-sql/pglite";
 
+export type DatasetVariant = "baseline" | "scenario-a" | "scenario-b";
+
 export interface QueryField {
   name: string;
   dataTypeID?: number;
@@ -15,50 +17,105 @@ export interface QueryResult {
   error: string | null;
 }
 
-let db: PGlite | null = null;
-let initialized = false;
-let initPromise: Promise<void> | null = null;
-
-export function getDB(): PGlite | null {
-  return db;
+interface InitState {
+  db: PGlite | null;
+  initialized: boolean;
+  initPromise: Promise<void> | null;
+  variant: DatasetVariant | null;
+  initError: string | null;
 }
 
-export async function initPGlite(company: string): Promise<void> {
-  if (initialized) return;
-  if (initPromise) return initPromise;
+const state: InitState = {
+  db: null,
+  initialized: false,
+  initPromise: null,
+  variant: null,
+  initError: null,
+};
 
-  initPromise = (async () => {
-    db = new PGlite();
-    const datasetUrl = `/data/${company}-5k.sql`;
+export function getDB(): PGlite | null {
+  return state.db;
+}
+
+export function getInitError(): string | null {
+  return state.initError;
+}
+
+export function getCurrentDataset(): DatasetVariant | null {
+  return state.variant;
+}
+
+function datasetUrl(company: string, variant: DatasetVariant): string {
+  return `/data/${company}-5k-${variant}.sql`;
+}
+
+export async function initPGlite(
+  company: string,
+  variant: DatasetVariant = "baseline"
+): Promise<void> {
+  if (state.initialized && state.variant === variant) return;
+  if (state.initPromise && state.variant === variant) return state.initPromise;
+
+  state.variant = variant;
+  state.initError = null;
+
+  state.initPromise = (async () => {
+    const db = new PGlite();
+    state.db = db;
+    const url = datasetUrl(company, variant);
+    // eslint-disable-next-line no-console
+    console.log(`[pglite] Fetching ${url}`);
     try {
-      const res = await fetch(datasetUrl);
-      if (res.ok) {
-        const sql = await res.text();
-        if (sql.trim().length > 0) {
-          console.log("[pglite] SQL length:", sql.length, "chars");
-          console.log("[pglite] First 200 chars:", sql.substring(0, 200));
-          await db.exec(sql);
-          console.log("[pglite] exec() completed successfully");
-        }
-      } else {
-        // Dataset not yet generated — leave an empty database so the UI still loads.
+      const res = await fetch(url);
+      if (!res.ok) {
+        const msg = `Dataset ${url} not found (HTTP ${res.status}).`;
+        state.initError = msg;
         // eslint-disable-next-line no-console
-        console.warn(
-          `[pglite] Dataset ${datasetUrl} not found (${res.status}). PGlite initialized empty.`
-        );
+        console.warn(`[pglite] ${msg}`);
+        state.initialized = true;
+        return;
       }
-    } catch (err) {
+      const sql = await res.text();
       // eslint-disable-next-line no-console
-      console.warn("[pglite] Dataset load failed:", err);
+      console.log(`[pglite] Loaded ${sql.length} chars`);
+      if (sql.trim().length === 0) {
+        state.initError = "Dataset file is empty.";
+        state.initialized = true;
+        return;
+      }
+      // Chunked load: schema first, then data — isolates a CREATE-time error
+      // from a row-level error so the UI can report which half failed.
+      const dataMarker = "-- DATA";
+      const splitIdx = sql.indexOf(dataMarker);
+      if (splitIdx > 0) {
+        const schemaSQL = sql.slice(0, splitIdx);
+        const dataSQL = sql.slice(splitIdx);
+        await db.exec(schemaSQL);
+        // eslint-disable-next-line no-console
+        console.log("[pglite] Schema loaded");
+        await db.exec(dataSQL);
+        // eslint-disable-next-line no-console
+        console.log("[pglite] Data loaded");
+      } else {
+        await db.exec(sql);
+        // eslint-disable-next-line no-console
+        console.log("[pglite] SQL executed (no -- DATA split)");
+      }
+      state.initialized = true;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      state.initError = msg;
+      // eslint-disable-next-line no-console
+      console.error("[pglite] init failed:", err);
+      state.initialized = true;
     }
-    initialized = true;
   })();
 
-  return initPromise;
+  return state.initPromise;
 }
 
 export async function runQuery(sql: string): Promise<QueryResult> {
-  if (!db) {
+  if (!state.db) {
     return {
       rows: [],
       fields: [],
@@ -69,7 +126,7 @@ export async function runQuery(sql: string): Promise<QueryResult> {
   }
   try {
     const start = performance.now();
-    const result = await db.query(sql);
+    const result = await state.db.query(sql);
     const duration = performance.now() - start;
     const rows = (result.rows ?? []) as Record<string, unknown>[];
     const fields = (result.fields ?? []) as QueryField[];
@@ -93,7 +150,17 @@ export async function runQuery(sql: string): Promise<QueryResult> {
 }
 
 export function resetPGlite(): void {
-  db = null;
-  initialized = false;
-  initPromise = null;
+  state.db = null;
+  state.initialized = false;
+  state.initPromise = null;
+  state.variant = null;
+  state.initError = null;
+}
+
+export async function switchDataset(
+  company: string,
+  variant: DatasetVariant
+): Promise<void> {
+  resetPGlite();
+  return initPGlite(company, variant);
 }
