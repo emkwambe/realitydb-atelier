@@ -104,10 +104,45 @@ atelier/
    Ed25519 from a Cloudflare Worker.
 
 ## Guardrails
-- NEVER modify `C:\Users\HP\Documents\realitydb-sandbox`
-- NEVER modify `C:\Users\HP\Documents\databox`
-- Work only in `C:\Users\HP\Documents\atelier`
-- `npm run build` must pass before any commit
+
+### NEVER do these
+- NEVER modify C:\Users\HP\Documents\realitydb-sandbox (separate product)
+- NEVER modify C:\Users\HP\Documents\databox\apps\cli (CLI engine)
+- NEVER run pnpm add/remove anywhere in databox (breaks engine junction)
+- NEVER commit without npm run build passing first
+- NEVER expose SUPABASE_SERVICE_ROLE_KEY or ANTHROPIC_API_KEY in client code
+- NEVER add output:'export' to next.config.mjs (breaks API routes)
+- NEVER modify the baseline dataset file directly — always regenerate + enforce
+- NEVER add UPDATE/DELETE statements to SQL files loaded by PGlite
+- NEVER use light theme — dark only, no light mode anywhere
+
+### ALWAYS do these
+- ALWAYS run npm run build before committing
+- ALWAYS use [System.IO.File]::WriteAllText() for UTF-8 files in PowerShell
+- ALWAYS use absolute paths in PowerShell commands
+- ALWAYS keep baseline dataset immutable — scenarios are branches
+- ALWAYS test SELECT * FROM customers LIMIT 5 after any PGlite change
+- ALWAYS clear .next cache when switching Next.js versions (Remove-Item -Recurse -Force .next)
+- ALWAYS commit to master branch (not main)
+- ALWAYS push to origin master after committing
+
+### Dataset pipeline (run in order)
+  1. realitydb run --pack novapay.json --rows 5000 --format sql -o novapay-5k.sql
+  2. .\scripts\enforce-novapay-story.ps1
+  3. Verify: Exercise 9 returns ~85% vs ~14% currency ticket churn split
+
+### Deployment
+  Platform: Vercel (NOT Cloudflare — API routes require server runtime)
+  Command: vercel --prod
+  URL: realitydb-atelier.vercel.app
+  Custom domain: atelier.realitydb.dev (set in Vercel dashboard)
+  Git: auto-deploys on push to master
+
+### Key commands
+  Dev server:  npm run dev (runs on localhost:3000)
+  Build:       npm run build
+  Deploy:      vercel --prod
+  Clear cache: Remove-Item -Recurse -Force .next
 
 ## Environment variables (`.env.local`)
 ```
