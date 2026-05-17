@@ -37,9 +37,7 @@ function LoginInner() {
       setError(humanizeAuthError(signInError.message));
       return;
     }
-    router.refresh();
-    await new Promise(r => setTimeout(r, 300));
-    router.push(next);
+    window.location.href = next;
   }
 
   async function handleMagicLink(e: React.FormEvent) {
