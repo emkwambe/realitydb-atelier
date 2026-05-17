@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Loader2, FileText } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, FileText, Compass, BookOpen, Trash2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExercisePanel } from "@/components/exercise/ExercisePanel";
 import { SqlEditor } from "@/components/exercise/SqlEditor";
@@ -25,6 +25,15 @@ interface HistoryItem {
   ts: number;
 }
 
+interface SavedQuery {
+  id: string;
+  label: string;
+  sql: string;
+  ts: number;
+  rowCount: number | null;
+  error: string | null;
+}
+
 interface Props {
   exercise: Exercise;
   exerciseNumber: number;
@@ -36,6 +45,8 @@ interface Props {
 
 const DATASET_KEY = (company: string) => `atelier:${company}:dataset`;
 const VISITED_KEY = (company: string) => `atelier:${company}:visitedScenarios`;
+const EXPLORE_KEY = (company: string) => `atelier:${company}:exploreMode`;
+const SAVED_QUERIES_KEY = (company: string) => `atelier:${company}:savedQueries`;
 
 export function ExerciseWorkbench({
   exercise,
@@ -59,6 +70,8 @@ export function ExerciseWorkbench({
 
   const storageKey = `atelier:${company}:progress`;
   const [completed, setCompleted] = useState<Record<number, boolean>>({});
+  const [exploreMode, setExploreMode] = useState(false);
+  const [savedQueries, setSavedQueries] = useState<SavedQuery[]>([]);
 
   // Restore prior dataset choice
   useEffect(() => {
@@ -103,6 +116,66 @@ export function ExerciseWorkbench({
       if (raw) setCompleted(JSON.parse(raw));
     } catch {}
   }, [storageKey]);
+
+  // Restore explore-mode preference and saved queries
+  useEffect(() => {
+    try {
+      const e = localStorage.getItem(EXPLORE_KEY(company));
+      if (e === "true") setExploreMode(true);
+      const s = localStorage.getItem(SAVED_QUERIES_KEY(company));
+      if (s) setSavedQueries(JSON.parse(s));
+    } catch {}
+  }, [company]);
+
+  const toggleExploreMode = useCallback(() => {
+    setExploreMode((v) => {
+      const next = !v;
+      try {
+        localStorage.setItem(EXPLORE_KEY(company), String(next));
+      } catch {}
+      return next;
+    });
+  }, [company]);
+
+  const handleSaveQuery = useCallback(
+    (sql: string, label: string, result: QueryResult | null) => {
+      const entry: SavedQuery = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        label,
+        sql,
+        ts: Date.now(),
+        rowCount: result?.error ? null : result?.rowCount ?? null,
+        error: result?.error ?? null,
+      };
+      setSavedQueries((prev) => {
+        const next = [entry, ...prev].slice(0, 50);
+        try {
+          localStorage.setItem(SAVED_QUERIES_KEY(company), JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+      setTab("history");
+    },
+    [company]
+  );
+
+  const deleteSavedQuery = useCallback(
+    (id: string) => {
+      setSavedQueries((prev) => {
+        const next = prev.filter((q) => q.id !== id);
+        try {
+          localStorage.setItem(SAVED_QUERIES_KEY(company), JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+    },
+    [company]
+  );
+
+  const loadIntoEditor = useCallback((sql: string) => {
+    setEditorSql(sql);
+    setTab("query");
+  }, []);
 
   const handleResult = useCallback((result: QueryResult, sql: string) => {
     setLastResult(result);
@@ -183,21 +256,42 @@ export function ExerciseWorkbench({
         onSwitch={onSwitchDataset}
       />
 
+      <div className="flex items-center justify-between border-b border-[#1e293b] bg-[#0a0f1a] px-4 py-1.5 text-[11px] text-[#64748b]">
+        <span className="font-mono uppercase tracking-wider">
+          Mode
+        </span>
+        <button
+          onClick={toggleExploreMode}
+          title={
+            exploreMode
+              ? "Show the exercise panel and prompts"
+              : "Hide the exercise panel. Query anything. Good for teachers and advanced students."
+          }
+          className={`inline-flex items-center gap-1.5 border px-2.5 py-0.5 font-mono uppercase tracking-wider transition ${
+            exploreMode
+              ? "border-[#06d6a0] bg-[#06d6a0]/10 text-[#06d6a0]"
+              : "border-[#1e293b] text-[#e2e8f0]/70 hover:border-[#06d6a0] hover:text-[#06d6a0]"
+          }`}
+        >
+          {exploreMode ? <Compass className="size-3" /> : <BookOpen className="size-3" />}
+          {exploreMode ? "Explore" : "Exercise"}
+        </button>
+      </div>
+
       <div className="flex flex-1 overflow-hidden">
-        <aside className="w-[40%] min-w-[320px] border-r border-[#1e293b] bg-[#111827]">
-          <ExercisePanel
-            exercise={exercise}
-            exerciseNumber={exerciseNumber}
-            totalExercises={totalExercises}
-            hasAttempted={history.length > 0}
-            isCompleted={Boolean(completed[exercise.id])}
-            onComplete={markComplete}
-            onUseReference={(sql) => {
-              setEditorSql(sql);
-              setTab("query");
-            }}
-          />
-        </aside>
+        {!exploreMode && (
+          <aside className="w-[40%] min-w-[320px] border-r border-[#1e293b] bg-[#111827]">
+            <ExercisePanel
+              exercise={exercise}
+              exerciseNumber={exerciseNumber}
+              totalExercises={totalExercises}
+              hasAttempted={history.length > 0}
+              isCompleted={Boolean(completed[exercise.id])}
+              onComplete={markComplete}
+              onUseReference={loadIntoEditor}
+            />
+          </aside>
+        )}
 
         <section className="flex flex-1 flex-col bg-[#0a0f1a]">
           <Tabs value={tab} onValueChange={setTab} className="flex flex-1 flex-col">
@@ -223,6 +317,7 @@ export function ExerciseWorkbench({
                 <SqlEditor
                   initialSql={editorSql}
                   onResult={handleResult}
+                  onSave={handleSaveQuery}
                   lastResult={lastResult}
                 />
               </div>
@@ -232,42 +327,92 @@ export function ExerciseWorkbench({
             </TabsContent>
 
             <TabsContent value="schema" className="m-0 flex-1 overflow-hidden">
-              <SchemaExplorer company={company} />
+              <SchemaExplorer company={company} onLoadQuery={loadIntoEditor} />
             </TabsContent>
 
             <TabsContent value="history" className="m-0 flex-1 overflow-y-auto">
-              {history.length === 0 ? (
-                <div className="p-6 text-sm text-[#64748b]">
-                  No queries run yet.
-                </div>
-              ) : (
-                <ul className="divide-y divide-[#1e293b]">
-                  {history.map((h, i) => (
-                    <li key={i} className="p-4">
-                      <div className="flex items-center justify-between font-mono text-[11px] text-[#64748b]">
-                        <span>{new Date(h.ts).toLocaleTimeString()}</span>
-                        <span>
-                          {h.result.error
-                            ? <span className="text-[#ef4444]">error</span>
-                            : `${h.result.rowCount} rows · ${h.result.duration}ms`}
-                        </span>
-                      </div>
-                      <pre className="mt-2 overflow-x-auto font-mono text-[11px] text-[#e2e8f0]">
-                        {h.sql}
-                      </pre>
-                      <button
-                        onClick={() => {
-                          setEditorSql(h.sql);
-                          setTab("query");
-                        }}
-                        className="mt-2 text-[11px] text-[#06d6a0] hover:underline"
-                      >
-                        Load into editor →
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+              {savedQueries.length > 0 && (
+                <section>
+                  <div className="border-b border-[#1e293b] bg-[#111827] px-4 py-2 font-mono text-[11px] uppercase tracking-wider text-[#06d6a0]">
+                    Saved queries ({savedQueries.length})
+                  </div>
+                  <ul className="divide-y divide-[#1e293b]">
+                    {savedQueries.map((q) => (
+                      <li key={q.id} className="bg-[#06d6a0]/[0.02] p-4">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="text-sm font-medium text-[#06d6a0]">
+                            {q.label}
+                          </div>
+                          <div className="flex items-center gap-3 font-mono text-[11px] text-[#64748b]">
+                            <span>
+                              {q.error
+                                ? <span className="text-[#ef4444]">error</span>
+                                : q.rowCount != null
+                                  ? `${q.rowCount} rows`
+                                  : ""}
+                            </span>
+                            <span>{new Date(q.ts).toLocaleString()}</span>
+                            <button
+                              onClick={() => deleteSavedQuery(q.id)}
+                              title="Delete saved query"
+                              className="text-[#64748b] hover:text-[#ef4444]"
+                            >
+                              <Trash2 className="size-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                        <pre className="mt-2 overflow-x-auto font-mono text-[11px] text-[#e2e8f0]">
+                          {q.sql}
+                        </pre>
+                        <button
+                          onClick={() => loadIntoEditor(q.sql)}
+                          className="mt-2 text-[11px] text-[#06d6a0] hover:underline"
+                        >
+                          Load into editor →
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
               )}
+
+              {history.length === 0 && savedQueries.length === 0 ? (
+                <div className="p-6 text-sm text-[#64748b]">
+                  No queries run yet. Run any SQL — the last 10 runs show up
+                  here automatically. Use the{" "}
+                  <span className="font-mono text-[#06d6a0]">Save</span> button
+                  to bookmark a query with a label you can cite in the briefing.
+                </div>
+              ) : history.length > 0 ? (
+                <section>
+                  <div className="border-b border-t border-[#1e293b] bg-[#0a0f1a] px-4 py-2 font-mono text-[11px] uppercase tracking-wider text-[#64748b]">
+                    Recent runs (last {history.length})
+                  </div>
+                  <ul className="divide-y divide-[#1e293b]">
+                    {history.map((h, i) => (
+                      <li key={i} className="p-4">
+                        <div className="flex items-center justify-between font-mono text-[11px] text-[#64748b]">
+                          <span>{new Date(h.ts).toLocaleTimeString()}</span>
+                          <span>
+                            {h.result.error
+                              ? <span className="text-[#ef4444]">error</span>
+                              : `${h.result.rowCount} rows · ${h.result.duration}ms`}
+                          </span>
+                        </div>
+                        <pre className="mt-2 overflow-x-auto font-mono text-[11px] text-[#e2e8f0]">
+                          {h.sql}
+                        </pre>
+                        <button
+                          onClick={() => loadIntoEditor(h.sql)}
+                          className="mt-2 text-[11px] text-[#06d6a0] hover:underline"
+                        >
+                          Load into editor →
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
             </TabsContent>
 
             {showComparison && (

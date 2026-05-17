@@ -1,17 +1,27 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { BookOpen, ChevronRight, Database, Search, Loader2 } from "lucide-react";
+import { BookOpen, ChevronRight, Database, Search, Loader2, PlayCircle } from "lucide-react";
 import { initPGlite, runQuery } from "@/lib/pglite";
 import { NOVAPAY_CITATIONS } from "@/content/companies/novapay/citations";
 import { MEDCORE_CITATIONS } from "@/content/companies/medcore/citations";
 import { SUPPLYLINK_CITATIONS } from "@/content/companies/supplylink/citations";
 import type { CompanyCitations } from "@/content/companies/novapay/citations";
+import { NOVAPAY_QUICK_QUERIES } from "@/content/companies/novapay/quickQueries";
+import { MEDCORE_QUICK_QUERIES } from "@/content/companies/medcore/quickQueries";
+import { SUPPLYLINK_QUICK_QUERIES } from "@/content/companies/supplylink/quickQueries";
+import type { CompanyQuickQueries } from "@/content/companies/novapay/quickQueries";
 
 const CITATIONS_BY_COMPANY: Record<string, CompanyCitations> = {
   novapay: NOVAPAY_CITATIONS,
   medcore: MEDCORE_CITATIONS,
   supplylink: SUPPLYLINK_CITATIONS,
+};
+
+const QUICK_QUERIES_BY_COMPANY: Record<string, CompanyQuickQueries> = {
+  novapay: NOVAPAY_QUICK_QUERIES,
+  medcore: MEDCORE_QUICK_QUERIES,
+  supplylink: SUPPLYLINK_QUICK_QUERIES,
 };
 
 interface ColumnInfo {
@@ -28,7 +38,12 @@ interface TableInfo {
   loadedSample: boolean;
 }
 
-export function SchemaExplorer({ company }: { company: string }) {
+interface Props {
+  company: string;
+  onLoadQuery?: (sql: string) => void;
+}
+
+export function SchemaExplorer({ company, onLoadQuery }: Props) {
   const [tables, setTables] = useState<TableInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -173,6 +188,30 @@ export function SchemaExplorer({ company }: { company: string }) {
                         ))}
                       </tbody>
                     </table>
+                    {QUICK_QUERIES_BY_COMPANY[company]?.[t.name] && onLoadQuery && (
+                      <div className="mt-3 border-t border-[#1e293b] pt-2">
+                        <div className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-[#06d6a0]">
+                          <PlayCircle className="size-3" /> Quick queries
+                        </div>
+                        <div className="mt-1 italic text-[10px] text-[#64748b]">
+                          Exploration prompts, not exercise answers. Click to load
+                          into the editor — edit freely before running.
+                        </div>
+                        <ul className="mt-1 space-y-1">
+                          {QUICK_QUERIES_BY_COMPANY[company][t.name].map((q) => (
+                            <li key={q.label}>
+                              <button
+                                onClick={() => onLoadQuery(q.sql)}
+                                className="flex w-full items-center gap-1.5 text-left text-[11px] text-[#e2e8f0]/80 hover:text-[#06d6a0]"
+                              >
+                                <span className="text-[#06d6a0]">→</span>
+                                {q.label}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                     {CITATIONS_BY_COMPANY[company]?.[t.name] && (
                       <div className="mt-3 border-t border-[#1e293b] pt-2">
                         <div className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-[#06d6a0]">

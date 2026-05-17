@@ -70,6 +70,11 @@ export function ExercisePanel({
           {exercise.description}
         </p>
 
+        <p className="border-l-2 border-[#1e293b] pl-3 text-[11px] italic leading-relaxed text-[#64748b]">
+          These questions are starting points. Query anything you find
+          interesting — the database responds to any valid SQL.
+        </p>
+
         <div>
           <button
             onClick={() => setHintOpen((v) => !v)}

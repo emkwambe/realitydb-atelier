@@ -192,6 +192,10 @@ export default function BriefingPage() {
               <h3 className="text-[11px] uppercase tracking-wider text-[#64748b]">
                 Cite exercises
               </h3>
+              <p className="mt-1 text-[10px] italic leading-relaxed text-[#64748b]">
+                Tick the numbered exercises you reference. Saved queries from
+                the History tab can be cited inline in the memo body.
+              </p>
               <ul className="mt-3 space-y-1.5">
                 {novaPayExercises.map((ex) => (
                   <li key={ex.id}>
@@ -258,8 +262,9 @@ export default function BriefingPage() {
             </h1>
             <p className="mt-2 text-sm text-[#64748b]">
               Board meeting in 2 weeks. 700–900 words. Four-part structure
-              below. Cite at least four exercises and include numbers from
-              the baseline AND any scenario you tested.
+              below. Cite the queries that support each point — that may be
+              the numbered exercises, or any saved query you ran yourself.
+              The best briefings often include original analysis.
             </p>
           </header>
 
