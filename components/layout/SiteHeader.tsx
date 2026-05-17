@@ -40,7 +40,9 @@ const PUBLIC_NAV: NavLink[] = [
 
 export function SiteHeader() {
   const router = useRouter();
-  const { user, role, isLoading, signOut } = useAuth();
+  const auth = useAuth();
+  if (!auth) return null;
+  const { user, role, isLoading, signOut } = auth;
 
   const navLinks = user && role ? NAV_BY_ROLE[role] : PUBLIC_NAV;
 

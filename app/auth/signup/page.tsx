@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { getSupabaseBrowserClient, getSiteUrl, isSupabaseConfigured } from "@/lib/supabase";
 
 type AccountType = "individual" | "university" | "corporate";
@@ -26,7 +26,6 @@ const ACCOUNT_TYPES: { value: AccountType; label: string; description: string }[
 ];
 
 function SignupInner() {
-  const router = useRouter();
   const params = useSearchParams();
   const next = params.get("next") || "/companies/novapay";
 
@@ -78,12 +77,13 @@ function SignupInner() {
       setError(humanizeError(signUpError.message));
       return;
     }
-    if (data.session) {
-      router.push(next);
-      router.refresh();
-      return;
-    }
-    router.push(`/auth/verify?email=${encodeURIComponent(email)}`);
+    // Stay on this page and show the inline confirmation. Do NOT navigate to
+    // a protected route — the session cookie may not have synced yet and the
+    // proxy would bounce us to /auth/login. The user must confirm email first.
+    void data;
+    setMessage(
+      `Check your inbox at ${email} for a verification link. Click it to activate your account.`
+    );
   }
 
   return (
