@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import { notFound } from "next/navigation";
 import { novaPayExercises } from "@/content/companies/novapay/exercises";
-import { ExerciseWorkbench } from "./_ExerciseWorkbench";
+import { ExerciseWorkbench } from "@/components/exercise/ExerciseWorkbench";
 
 export default function ExercisePage() {
   const params = useParams<{ n: string }>();

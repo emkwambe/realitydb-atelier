@@ -4,6 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import { BookOpen, ChevronRight, Database, Search, Loader2 } from "lucide-react";
 import { initPGlite, runQuery } from "@/lib/pglite";
 import { NOVAPAY_CITATIONS } from "@/content/companies/novapay/citations";
+import { MEDCORE_CITATIONS } from "@/content/companies/medcore/citations";
+import type { CompanyCitations } from "@/content/companies/novapay/citations";
+
+const CITATIONS_BY_COMPANY: Record<string, CompanyCitations> = {
+  novapay: NOVAPAY_CITATIONS,
+  medcore: MEDCORE_CITATIONS,
+};
 
 interface ColumnInfo {
   table_name: string;
@@ -164,13 +171,13 @@ export function SchemaExplorer({ company }: { company: string }) {
                         ))}
                       </tbody>
                     </table>
-                    {company === "novapay" && NOVAPAY_CITATIONS[t.name] && (
+                    {CITATIONS_BY_COMPANY[company]?.[t.name] && (
                       <div className="mt-3 border-t border-[#1e293b] pt-2">
                         <div className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-[#06d6a0]">
                           <BookOpen className="size-3" /> Distribution sources
                         </div>
                         <ul className="mt-1 space-y-1.5">
-                          {Object.entries(NOVAPAY_CITATIONS[t.name]).map(
+                          {Object.entries(CITATIONS_BY_COMPANY[company][t.name]).map(
                             ([col, cite]) => (
                               <li key={col} className="text-[10px] leading-snug">
                                 <span className="font-mono text-[#e2e8f0]">{col}</span>

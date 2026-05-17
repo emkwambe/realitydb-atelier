@@ -2,21 +2,30 @@
 
 import { Loader2 } from "lucide-react";
 import type { DatasetVariant } from "@/lib/pglite";
+import type { ScenarioMeta } from "@/content/companies/novapay/scenarios";
 import { NOVAPAY_SCENARIOS } from "@/content/companies/novapay/scenarios";
+import { MEDCORE_SCENARIOS } from "@/content/companies/medcore/scenarios";
+
+const SCENARIO_BY_COMPANY: Record<string, ScenarioMeta[]> = {
+  novapay: NOVAPAY_SCENARIOS,
+  medcore: MEDCORE_SCENARIOS,
+};
 
 interface Props {
+  company: string;
   current: DatasetVariant;
   switching: boolean;
   onSwitch: (variant: DatasetVariant) => void;
 }
 
-export function DatasetSwitcher({ current, switching, onSwitch }: Props) {
+export function DatasetSwitcher({ company, current, switching, onSwitch }: Props) {
+  const scenarios = SCENARIO_BY_COMPANY[company] ?? NOVAPAY_SCENARIOS;
   return (
     <div className="flex items-stretch border-b border-[#1e293b] bg-[#0a0f1a]">
       <div className="flex items-center px-4 font-mono text-[10px] uppercase tracking-wider text-[#64748b]">
         Dataset
       </div>
-      {NOVAPAY_SCENARIOS.map((s) => {
+      {scenarios.map((s) => {
         const active = s.id === current;
         return (
           <button

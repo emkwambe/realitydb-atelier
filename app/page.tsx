@@ -14,11 +14,11 @@ const COMPANIES: CompanyCardProps[] = [
   },
   {
     slug: "medcore",
-    name: "MedCore",
+    name: "MedCore Health",
     domain: "Healthcare",
-    teaser: "A hospital network where the numbers don't add up.",
-    available: false,
-    tables: 14,
+    teaser: "A hospital where one payer is quietly denying everything.",
+    available: true,
+    tables: 12,
     rows: 50000,
   },
   {

@@ -45,8 +45,17 @@ export function getCurrentDataset(): DatasetVariant | null {
   return state.variant;
 }
 
+// Per-company row-count token. NovaPay ships as 5k for PGlite-friendly load
+// times; MedCore ships at 50k because the story needs payer × 24-month
+// granularity. Add new companies here as they come online.
+const COMPANY_ROW_TOKEN: Record<string, string> = {
+  novapay: "5k",
+  medcore: "50k",
+};
+
 function datasetUrl(company: string, variant: DatasetVariant): string {
-  return `/data/${company}-5k-${variant}.sql`;
+  const token = COMPANY_ROW_TOKEN[company] ?? "5k";
+  return `/data/${company}-${token}-${variant}.sql`;
 }
 
 export async function initPGlite(

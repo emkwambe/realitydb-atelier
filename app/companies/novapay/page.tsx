@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Database } from "lucide-react";
 import { novaPayExercises } from "@/content/companies/novapay/exercises";
-import { ExerciseNavStatic } from "./_ExerciseNavStatic";
+import { ExerciseNavStatic } from "@/components/exercise/ExerciseNavStatic";
 
 export default function NovaPayPage() {
   return (
@@ -62,7 +62,7 @@ export default function NovaPayPage() {
           </span>
         </div>
         <div className="mt-4 border border-[#1e293b] bg-[#111827]">
-          <ExerciseNavStatic exercises={novaPayExercises} />
+          <ExerciseNavStatic exercises={novaPayExercises} company="novapay" />
         </div>
       </section>
     </div>

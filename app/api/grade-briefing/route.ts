@@ -1,5 +1,12 @@
 import { NextResponse } from "next/server";
 import { novaPayRubric } from "@/content/companies/novapay/rubric";
+import { medcoreRubric } from "@/content/companies/medcore/rubric";
+import type { CompanyRubric } from "@/content/companies/novapay/rubric";
+
+const RUBRIC_BY_COMPANY: Record<string, CompanyRubric> = {
+  novapay: novaPayRubric,
+  medcore: medcoreRubric,
+};
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -51,7 +58,8 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
-  if (body.companyId !== "novapay") {
+  const rubric = RUBRIC_BY_COMPANY[body.companyId];
+  if (!rubric) {
     return NextResponse.json(
       { error: `Unsupported company: ${body.companyId}` },
       { status: 400 }
@@ -62,11 +70,12 @@ export async function POST(request: Request) {
 
   if (!apiKey) {
     return NextResponse.json(
-      heuristicGrade(body.briefingText, body.scenariosTested ?? [])
+      heuristicGrade(body.companyId, body.briefingText, body.scenariosTested ?? [])
     );
   }
 
   const prompt = buildPrompt(
+    rubric,
     body.briefingText,
     body.exercisesCited ?? [],
     body.scenariosTested ?? []
@@ -108,7 +117,7 @@ export async function POST(request: Request) {
     const parsed = extractJson(content);
     if (!parsed) {
       return NextResponse.json(
-        heuristicGrade(body.briefingText, body.scenariosTested ?? [])
+        heuristicGrade(body.companyId, body.briefingText, body.scenariosTested ?? [])
       );
     }
     return NextResponse.json(parsed);
@@ -122,11 +131,12 @@ export async function POST(request: Request) {
 }
 
 function buildPrompt(
+  rubric: CompanyRubric,
   text: string,
   citations: number[],
   scenarios: string[]
 ): string {
-  const rubric = Object.entries(novaPayRubric.axes)
+  const rubricStr = Object.entries(rubric.axes)
     .map(
       ([k, v]) => `  - ${k} (${v.maxScore} pts)
     pass:  ${v.passCriteria}
@@ -134,13 +144,13 @@ function buildPrompt(
     )
     .join("\n");
 
-  return `You are grading a CEO briefing memo for the NovaPay business case.
+  return `You are grading a CEO briefing memo for the ${rubric.companyLabel} business case.
 
 THE HIDDEN STORY (do not show this to the student; use it only to grade):
-${novaPayRubric.hiddenStory}
+${rubric.hiddenStory}
 
-THE RUBRIC (each axis max 20 points; passing total = ${novaPayRubric.passingScore}):
-${rubric}
+THE RUBRIC (each axis max 20 points; passing total = ${rubric.passingScore}):
+${rubricStr}
 
 THE STUDENT'S BRIEFING:
 ---
@@ -183,20 +193,35 @@ function extractJson(text: string): GradingResponse | null {
 }
 
 // Heuristic fallback so the UI is testable without an API key.
-function heuristicGrade(text: string, scenarios: string[]): GradingResponse {
+function heuristicGrade(
+  companyId: string,
+  text: string,
+  scenarios: string[]
+): GradingResponse {
   const lower = text.toLowerCase();
   const has = (needles: string[]) => needles.some((n) => lower.includes(n));
   const numbers = (text.match(/\$?\d[\d,.]{1,}/g) ?? []).length;
 
-  const segmentation_pass =
-    has(["enterprise", "smb", "mid-market", "segment"]) &&
-    has(["churn", "retention"]);
-  const causal_pass =
-    has(["currency", "fx", "multi-currency"]) && has(["ticket", "support"]);
-  const quant_pass = numbers >= 2 && has(["arr", "mrr", "$"]);
-  const reco_pass =
-    has(["recommend", "ship", "build"]) &&
-    has(["multi-currency", "currency support", "fx"]);
+  const isMedCore = companyId === "medcore";
+
+  // Per-company keyword cohorts
+  const segmentation_pass = isMedCore
+    ? has(["payer", "midstate", "mutual", "bluesheild", "blueshield", "united", "aetna"]) &&
+      has(["denial", "claim"])
+    : has(["enterprise", "smb", "mid-market", "segment"]) &&
+      has(["churn", "retention"]);
+  const causal_pass = isMedCore
+    ? has(["authorization", "prior auth", "co-97", "policy", "rule change"]) &&
+      has(["6 months", "last six", "spike", "inflection"])
+    : has(["currency", "fx", "multi-currency"]) && has(["ticket", "support"]);
+  const quant_pass = isMedCore
+    ? numbers >= 2 && (has(["$2.4m", "2.4 million", "$2,400,000", "revenue at risk", "annualized"]))
+    : numbers >= 2 && has(["arr", "mrr", "$"]);
+  const reco_pass = isMedCore
+    ? has(["recommend", "renegotiate", "pivot"]) &&
+      has(["midstate", "contract", "volume"])
+    : has(["recommend", "ship", "build"]) &&
+      has(["multi-currency", "currency support", "fx"]);
   const honesty_pass =
     has([
       "cannot",
@@ -212,25 +237,41 @@ function heuristicGrade(text: string, scenarios: string[]): GradingResponse {
     has(["correlation is not causation", "synthetic", "not yet"]);
 
   const segmentation: AxisGrade = segmentation_pass
-    ? { score: 17, feedback: "Segments churn by tier and identifies enterprise as the risk." }
-    : { score: 9, feedback: "Treats churn as a blended rate. Segment by tier." };
+    ? isMedCore
+      ? { score: 17, feedback: "Identifies MidState Mutual as the outlier payer." }
+      : { score: 17, feedback: "Segments churn by tier and identifies enterprise as the risk." }
+    : isMedCore
+      ? { score: 9, feedback: "Reports an aggregate denial rate. Break it down by payer." }
+      : { score: 9, feedback: "Treats churn as a blended rate. Segment by tier." };
 
   const causal_reasoning: AxisGrade = causal_pass
-    ? { score: 16, feedback: "Connects currency support to enterprise churn." }
-    : { score: 7, feedback: "Does not establish a causal link between support tickets and churn." };
+    ? isMedCore
+      ? { score: 16, feedback: "Connects authorization-denial spike to a payer policy change in the last 6 months." }
+      : { score: 16, feedback: "Connects currency support to enterprise churn." }
+    : isMedCore
+      ? { score: 7, feedback: "Does not link the denial spike to the last-6-month inflection or to authorization category." }
+      : { score: 7, feedback: "Does not establish a causal link between support tickets and churn." };
 
   const quantification: AxisGrade = quant_pass
-    ? { score: 15, feedback: "Cites specific numbers and quantifies ARR at risk." }
-    : { score: 8, feedback: "Add specific numbers — ARR at risk, % revenue, churn delta." };
+    ? isMedCore
+      ? { score: 15, feedback: "Quantifies the $2.4M revenue at risk with a calculation method." }
+      : { score: 15, feedback: "Cites specific numbers and quantifies ARR at risk." }
+    : isMedCore
+      ? { score: 8, feedback: "Add specific numbers — denied dollars, annualized at-risk, net collection delta." }
+      : { score: 8, feedback: "Add specific numbers — ARR at risk, % revenue, churn delta." };
 
   const reco_with_scenario =
     reco_pass &&
     (scenarios.includes("scenario-a") || scenarios.includes("scenario-b"));
   const recommendation: AxisGrade = reco_with_scenario
-    ? { score: 16, feedback: "Recommends multi-currency and ties it to a scenario you tested." }
+    ? isMedCore
+      ? { score: 16, feedback: "Recommends renegotiate or pivot and ties it to a scenario you tested." }
+      : { score: 16, feedback: "Recommends multi-currency and ties it to a scenario you tested." }
     : reco_pass
       ? { score: 12, feedback: "Recommendation present; test a scenario to back it with the data." }
-      : { score: 7, feedback: "Recommendation is generic; specify scope, cost, payback, and scenario tested." };
+      : isMedCore
+        ? { score: 7, feedback: "Recommendation is generic; specify cost ($150K vs $800K), payback, and scenario tested." }
+        : { score: 7, feedback: "Recommendation is generic; specify scope, cost, payback, and scenario tested." };
 
   const epistemic_honesty: AxisGrade = honesty_pass
     ? { score: 16, feedback: "Acknowledges at least one open question or data limit." }
@@ -243,9 +284,18 @@ function heuristicGrade(text: string, scenarios: string[]): GradingResponse {
     recommendation.score +
     epistemic_honesty.score;
 
+  const rubric = RUBRIC_BY_COMPANY[companyId] ?? novaPayRubric;
+  const passingScore = rubric.passingScore;
+  const passSummary = isMedCore
+    ? "Solid briefing. You isolated MidState Mutual as the outlier payer, linked the denial spike to an authorization-rule change, and quantified the $2.4M at risk. Tighten the recommendation with payback math next time."
+    : "Solid briefing. You identified the segmented churn risk, connected currency support to enterprise loss, and named an open question. Tighten the recommendation with a payback ratio next time.";
+  const failSummary = isMedCore
+    ? "The briefing reports an overall denial rate but misses the payer-level signal. Break denials down by payer, check the last-6-month period against the prior 18, look at appeal-overturn rates, quantify revenue at risk in dollars, test a scenario, and name an alternative explanation."
+    : "The briefing reports growth but misses the enterprise churn signal. Re-segment churn, link currency tickets to it, quantify ARR at risk over 12 months, test a scenario, and name what you cannot yet confirm.";
+
   return {
     overall_score: overall,
-    passed: overall >= novaPayRubric.passingScore,
+    passed: overall >= passingScore,
     axes: {
       segmentation,
       causal_reasoning,
@@ -253,10 +303,7 @@ function heuristicGrade(text: string, scenarios: string[]): GradingResponse {
       recommendation,
       epistemic_honesty,
     },
-    summary_feedback:
-      overall >= novaPayRubric.passingScore
-        ? "Solid briefing. You identified the segmented churn risk, connected currency support to enterprise loss, and named an open question. Tighten the recommendation with a payback ratio next time."
-        : "The briefing reports growth but misses the enterprise churn signal. Re-segment churn, link currency tickets to it, quantify ARR at risk over 12 months, test a scenario, and name what you cannot yet confirm.",
+    summary_feedback: overall >= passingScore ? passSummary : failSummary,
     enterprise_churn_found: segmentation_pass && causal_pass,
     currency_cause_found: causal_pass,
     arr_quantified: quant_pass,

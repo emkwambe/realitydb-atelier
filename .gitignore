@@ -33,6 +33,10 @@ client_secret*.json
 *-credentials.json
 *.serviceaccount.json
 
+# Pre-enforcer dataset snapshots (used as inputs for the story enforcer).
+# Re-generated locally via the RealityDB CLI; not deployed.
+public/data/*-pregen.sql
+
 # vercel
 .vercel
 

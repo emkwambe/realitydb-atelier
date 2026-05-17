@@ -1,0 +1,41 @@
+{
+  "generated_at": "2026-05-17T07:45:49.646Z",
+  "baseline": {
+    "label": "Baseline",
+    "midstate_denial_rate_pct": 27.5,
+    "midstate_spike_denial_pct": 40,
+    "midstate_baseline_denial_pct": 15,
+    "other_payers_denial_pct": 13.6,
+    "midstate_claim_volume_pct": 28,
+    "midstate_underpayment_pct": 22,
+    "arr_at_risk_12mo": 2400000,
+    "net_collection_rate_pct": 84
+  },
+  "scenario_a": {
+    "label": "Scenario A — Contract renegotiated",
+    "midstate_denial_rate_pct": 15,
+    "midstate_spike_denial_pct": 15,
+    "midstate_baseline_denial_pct": 15,
+    "other_payers_denial_pct": 13.6,
+    "midstate_claim_volume_pct": 28,
+    "midstate_underpayment_pct": 8,
+    "arr_at_risk_12mo": 0,
+    "net_collection_rate_pct": 91,
+    "revenue_recovered_12mo": 2400000,
+    "contract_renegotiation_cost": 150000,
+    "payback_months": 0.75
+  },
+  "scenario_b": {
+    "label": "Scenario B — Volume pivot",
+    "midstate_denial_rate_pct": 27.5,
+    "midstate_spike_denial_pct": 40,
+    "midstate_baseline_denial_pct": 15,
+    "other_payers_denial_pct": 13.6,
+    "midstate_claim_volume_pct": 11.2,
+    "midstate_underpayment_pct": 22,
+    "blended_denial_rate_pct": 15,
+    "short_term_revenue_impact": -800000,
+    "long_term_net_benefit_12mo": 1600000,
+    "payback_months": 6
+  }
+}
