@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { getSupabaseBrowserClient, getSiteUrl, isSupabaseConfigured } from "@/lib/supabase";
+import { humanizeAuthError } from "@/lib/auth/errors";
 
 function MagicLinkInner() {
   const params = useSearchParams();
@@ -28,11 +29,12 @@ function MagicLinkInner() {
       email,
       options: {
         emailRedirectTo: `${getSiteUrl()}/auth/callback?next=${encodeURIComponent(next)}`,
+        shouldCreateUser: false,
       },
     });
     setLoading(false);
     if (linkError) {
-      setError(linkError.message);
+      setError(humanizeAuthError(linkError.message));
       return;
     }
     setSent(true);

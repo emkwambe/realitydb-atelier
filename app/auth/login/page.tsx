@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowserClient, getSiteUrl, isSupabaseConfigured } from "@/lib/supabase";
+import { humanizeAuthError } from "@/lib/auth/errors";
 
 type Mode = "password" | "magic-link";
 
@@ -220,14 +221,6 @@ function SubmitButton({ loading, label }: { loading: boolean; label: string }) {
       {loading ? "Working..." : label}
     </button>
   );
-}
-
-function humanizeAuthError(msg: string): string {
-  if (/invalid login credentials/i.test(msg)) return "Incorrect email or password.";
-  if (/email not confirmed/i.test(msg)) return "Please confirm your email — check your inbox.";
-  if (/rate.?limit/i.test(msg)) return "Too many attempts. Please wait a moment and try again.";
-  if (/user not found/i.test(msg)) return "No account with that email. Create one first.";
-  return msg;
 }
 
 export default function LoginPage() {
