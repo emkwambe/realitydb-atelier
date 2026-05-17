@@ -37,8 +37,16 @@ export function getSupabaseAdminClient(): SupabaseClient | null {
 }
 
 export function getSiteUrl(): string {
+  // On the client, always use the current origin. PKCE auth flows store the
+  // code verifier in a cookie scoped to the page's host; the /auth/callback
+  // route must run on that same host or the verifier is invisible and the
+  // exchange fails with "PKCE code verifier not found in storage". This
+  // matters in particular for Vercel: the app is reachable on both the
+  // realitydb-atelier.vercel.app preview alias and the atelier.realitydb.dev
+  // custom domain, and users must finish auth on the host they started on.
+  if (typeof window !== "undefined") return window.location.origin;
+  // On the server, fall back to the configured site URL.
   const fromEnv = process.env.NEXT_PUBLIC_SITE_URL;
   if (fromEnv) return fromEnv.replace(/\/$/, "");
-  if (typeof window !== "undefined") return window.location.origin;
   return "https://atelier.realitydb.dev";
 }
