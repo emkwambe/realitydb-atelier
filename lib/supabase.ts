@@ -8,7 +8,15 @@ export function getSupabaseBrowserClient(): SupabaseClient | null {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return null;
-  browserClient = createBrowserClient(url, key);
+  // Cookie options are scoped to the current host (no explicit domain) so the
+  // browser writes the auth token to atelier.realitydb.dev in production and
+  // localhost in dev — both readable by the matching server-side proxy.
+  browserClient = createBrowserClient(url, key, {
+    cookieOptions: {
+      path: "/",
+      sameSite: "lax",
+    },
+  });
   return browserClient;
 }
 

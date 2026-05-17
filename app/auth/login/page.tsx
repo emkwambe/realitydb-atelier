@@ -32,11 +32,29 @@ function LoginInner() {
     }
     setLoading(true);
     const { error: signInError } = await sb.auth.signInWithPassword({ email, password });
-    setLoading(false);
     if (signInError) {
+      setLoading(false);
       setError(humanizeAuthError(signInError.message));
       return;
     }
+    // The middleware reads the session from cookies. signInWithPassword writes
+    // the chunked sb-*-auth-token cookies via document.cookie, but on slow
+    // machines the navigation can fire before the write has flushed. Verify
+    // both the in-memory session and the cookie are present before we let
+    // the browser do a full reload into the protected route.
+    const { data: sessionData } = await sb.auth.getSession();
+    if (!sessionData.session) {
+      setLoading(false);
+      setError("Sign-in succeeded but the session did not persist. Please retry.");
+      return;
+    }
+    const cookieReady =
+      typeof document === "undefined" ||
+      /sb-[^=]+-auth-token(?:\.\d+)?=/.test(document.cookie);
+    if (!cookieReady) {
+      await new Promise((r) => setTimeout(r, 50));
+    }
+    setLoading(false);
     window.location.href = next;
   }
 
