@@ -5,11 +5,13 @@ import { BookOpen, ChevronRight, Database, Search, Loader2 } from "lucide-react"
 import { initPGlite, runQuery } from "@/lib/pglite";
 import { NOVAPAY_CITATIONS } from "@/content/companies/novapay/citations";
 import { MEDCORE_CITATIONS } from "@/content/companies/medcore/citations";
+import { SUPPLYLINK_CITATIONS } from "@/content/companies/supplylink/citations";
 import type { CompanyCitations } from "@/content/companies/novapay/citations";
 
 const CITATIONS_BY_COMPANY: Record<string, CompanyCitations> = {
   novapay: NOVAPAY_CITATIONS,
   medcore: MEDCORE_CITATIONS,
+  supplylink: SUPPLYLINK_CITATIONS,
 };
 
 interface ColumnInfo {

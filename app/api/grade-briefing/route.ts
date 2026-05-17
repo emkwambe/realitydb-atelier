@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { novaPayRubric } from "@/content/companies/novapay/rubric";
 import { medcoreRubric } from "@/content/companies/medcore/rubric";
+import { supplylinkRubric } from "@/content/companies/supplylink/rubric";
 import type { CompanyRubric } from "@/content/companies/novapay/rubric";
 
 const RUBRIC_BY_COMPANY: Record<string, CompanyRubric> = {
   novapay: novaPayRubric,
   medcore: medcoreRubric,
+  supplylink: supplylinkRubric,
 };
 
 export const runtime = "nodejs";
@@ -203,25 +205,51 @@ function heuristicGrade(
   const numbers = (text.match(/\$?\d[\d,.]{1,}/g) ?? []).length;
 
   const isMedCore = companyId === "medcore";
+  const isSupplyLink = companyId === "supplylink";
 
   // Per-company keyword cohorts
-  const segmentation_pass = isMedCore
-    ? has(["payer", "midstate", "mutual", "bluesheild", "blueshield", "united", "aetna"]) &&
-      has(["denial", "claim"])
-    : has(["enterprise", "smb", "mid-market", "segment"]) &&
+  let segmentation_pass: boolean;
+  let causal_pass: boolean;
+  let quant_pass: boolean;
+  let reco_pass: boolean;
+
+  if (isSupplyLink) {
+    segmentation_pass =
+      has(["zhonghe", "supplier", "monterrey", "bangalore", "rheinmetal"]) &&
+      has(["late", "delivery", "on-time", "on time", "quality"]);
+    causal_pass =
+      has(["inflection", "month 15", "august", "aug 2025", "scorecard"]) &&
+      has(["lead time", "quality", "on-time", "on time", "degradation", "degraded"]);
+    quant_pass =
+      numbers >= 2 &&
+      has(["$8.1m", "$8.1 million", "8.1m", "expediting", "rework", "stockout", "cogs"]);
+    reco_pass =
+      has(["recommend", "dual-source", "exit", "renegotiate", "transition"]) &&
+      has(["zhonghe", "payback", "$450k", "$1.2m"]);
+  } else if (isMedCore) {
+    segmentation_pass =
+      has(["payer", "midstate", "mutual", "bluesheild", "blueshield", "united", "aetna"]) &&
+      has(["denial", "claim"]);
+    causal_pass =
+      has(["authorization", "prior auth", "co-97", "policy", "rule change"]) &&
+      has(["6 months", "last six", "spike", "inflection"]);
+    quant_pass =
+      numbers >= 2 &&
+      has(["$2.4m", "2.4 million", "$2,400,000", "revenue at risk", "annualized"]);
+    reco_pass =
+      has(["recommend", "renegotiate", "pivot"]) &&
+      has(["midstate", "contract", "volume"]);
+  } else {
+    segmentation_pass =
+      has(["enterprise", "smb", "mid-market", "segment"]) &&
       has(["churn", "retention"]);
-  const causal_pass = isMedCore
-    ? has(["authorization", "prior auth", "co-97", "policy", "rule change"]) &&
-      has(["6 months", "last six", "spike", "inflection"])
-    : has(["currency", "fx", "multi-currency"]) && has(["ticket", "support"]);
-  const quant_pass = isMedCore
-    ? numbers >= 2 && (has(["$2.4m", "2.4 million", "$2,400,000", "revenue at risk", "annualized"]))
-    : numbers >= 2 && has(["arr", "mrr", "$"]);
-  const reco_pass = isMedCore
-    ? has(["recommend", "renegotiate", "pivot"]) &&
-      has(["midstate", "contract", "volume"])
-    : has(["recommend", "ship", "build"]) &&
+    causal_pass = has(["currency", "fx", "multi-currency"]) && has(["ticket", "support"]);
+    quant_pass = numbers >= 2 && has(["arr", "mrr", "$"]);
+    reco_pass =
+      has(["recommend", "ship", "build"]) &&
       has(["multi-currency", "currency support", "fx"]);
+  }
+
   const honesty_pass =
     has([
       "cannot",
@@ -236,42 +264,85 @@ function heuristicGrade(
     ]) ||
     has(["correlation is not causation", "synthetic", "not yet"]);
 
+  const pickFeedback = <T,>(supply: T, med: T, nova: T): T =>
+    isSupplyLink ? supply : isMedCore ? med : nova;
+
   const segmentation: AxisGrade = segmentation_pass
-    ? isMedCore
-      ? { score: 17, feedback: "Identifies MidState Mutual as the outlier payer." }
-      : { score: 17, feedback: "Segments churn by tier and identifies enterprise as the risk." }
-    : isMedCore
-      ? { score: 9, feedback: "Reports an aggregate denial rate. Break it down by payer." }
-      : { score: 9, feedback: "Treats churn as a blended rate. Segment by tier." };
+    ? {
+        score: 17,
+        feedback: pickFeedback(
+          "Identifies Zhonghe Industrial as the outlier supplier.",
+          "Identifies MidState Mutual as the outlier payer.",
+          "Segments churn by tier and identifies enterprise as the risk."
+        ),
+      }
+    : {
+        score: 9,
+        feedback: pickFeedback(
+          "Reports a blended on-time rate. Break it down by supplier.",
+          "Reports an aggregate denial rate. Break it down by payer.",
+          "Treats churn as a blended rate. Segment by tier."
+        ),
+      };
 
   const causal_reasoning: AxisGrade = causal_pass
-    ? isMedCore
-      ? { score: 16, feedback: "Connects authorization-denial spike to a payer policy change in the last 6 months." }
-      : { score: 16, feedback: "Connects currency support to enterprise churn." }
-    : isMedCore
-      ? { score: 7, feedback: "Does not link the denial spike to the last-6-month inflection or to authorization category." }
-      : { score: 7, feedback: "Does not establish a causal link between support tickets and churn." };
+    ? {
+        score: 16,
+        feedback: pickFeedback(
+          "Connects the August 2025 inflection in Zhonghe's scorecard to simultaneous degradation in on-time, quality, and lead time.",
+          "Connects authorization-denial spike to a payer policy change in the last 6 months.",
+          "Connects currency support to enterprise churn."
+        ),
+      }
+    : {
+        score: 7,
+        feedback: pickFeedback(
+          "Does not link the late-delivery rise to the month-15 inflection or to a specific supplier's scorecard arc.",
+          "Does not link the denial spike to the last-6-month inflection or to authorization category.",
+          "Does not establish a causal link between support tickets and churn."
+        ),
+      };
 
   const quantification: AxisGrade = quant_pass
-    ? isMedCore
-      ? { score: 15, feedback: "Quantifies the $2.4M revenue at risk with a calculation method." }
-      : { score: 15, feedback: "Cites specific numbers and quantifies ARR at risk." }
-    : isMedCore
-      ? { score: 8, feedback: "Add specific numbers — denied dollars, annualized at-risk, net collection delta." }
-      : { score: 8, feedback: "Add specific numbers — ARR at risk, % revenue, churn delta." };
+    ? {
+        score: 15,
+        feedback: pickFeedback(
+          "Quantifies the $8.1M cost of the Zhonghe relationship with a derivation.",
+          "Quantifies the $2.4M revenue at risk with a calculation method.",
+          "Cites specific numbers and quantifies ARR at risk."
+        ),
+      }
+    : {
+        score: 8,
+        feedback: pickFeedback(
+          "Add specific numbers — expediting cost, rework cost, stockout impact, total vs annual spend.",
+          "Add specific numbers — denied dollars, annualized at-risk, net collection delta.",
+          "Add specific numbers — ARR at risk, % revenue, churn delta."
+        ),
+      };
 
   const reco_with_scenario =
     reco_pass &&
     (scenarios.includes("scenario-a") || scenarios.includes("scenario-b"));
   const recommendation: AxisGrade = reco_with_scenario
-    ? isMedCore
-      ? { score: 16, feedback: "Recommends renegotiate or pivot and ties it to a scenario you tested." }
-      : { score: 16, feedback: "Recommends multi-currency and ties it to a scenario you tested." }
+    ? {
+        score: 16,
+        feedback: pickFeedback(
+          "Recommends dual-source or exit and ties it to a scenario you tested.",
+          "Recommends renegotiate or pivot and ties it to a scenario you tested.",
+          "Recommends multi-currency and ties it to a scenario you tested."
+        ),
+      }
     : reco_pass
       ? { score: 12, feedback: "Recommendation present; test a scenario to back it with the data." }
-      : isMedCore
-        ? { score: 7, feedback: "Recommendation is generic; specify cost ($150K vs $800K), payback, and scenario tested." }
-        : { score: 7, feedback: "Recommendation is generic; specify scope, cost, payback, and scenario tested." };
+      : {
+          score: 7,
+          feedback: pickFeedback(
+            "Recommendation is generic; specify cost ($450K vs $1.2M), payback, and scenario tested.",
+            "Recommendation is generic; specify cost ($150K vs $800K), payback, and scenario tested.",
+            "Recommendation is generic; specify scope, cost, payback, and scenario tested."
+          ),
+        };
 
   const epistemic_honesty: AxisGrade = honesty_pass
     ? { score: 16, feedback: "Acknowledges at least one open question or data limit." }
@@ -286,12 +357,16 @@ function heuristicGrade(
 
   const rubric = RUBRIC_BY_COMPANY[companyId] ?? novaPayRubric;
   const passingScore = rubric.passingScore;
-  const passSummary = isMedCore
-    ? "Solid briefing. You isolated MidState Mutual as the outlier payer, linked the denial spike to an authorization-rule change, and quantified the $2.4M at risk. Tighten the recommendation with payback math next time."
-    : "Solid briefing. You identified the segmented churn risk, connected currency support to enterprise loss, and named an open question. Tighten the recommendation with a payback ratio next time.";
-  const failSummary = isMedCore
-    ? "The briefing reports an overall denial rate but misses the payer-level signal. Break denials down by payer, check the last-6-month period against the prior 18, look at appeal-overturn rates, quantify revenue at risk in dollars, test a scenario, and name an alternative explanation."
-    : "The briefing reports growth but misses the enterprise churn signal. Re-segment churn, link currency tickets to it, quantify ARR at risk over 12 months, test a scenario, and name what you cannot yet confirm.";
+  const passSummary = pickFeedback(
+    "Solid briefing. You isolated Zhonghe Industrial as the outlier, identified the August 2025 inflection across all four scorecard metrics, and quantified the $8.1M cost of the relationship. Tighten the recommendation with payback math next time.",
+    "Solid briefing. You isolated MidState Mutual as the outlier payer, linked the denial spike to an authorization-rule change, and quantified the $2.4M at risk. Tighten the recommendation with payback math next time.",
+    "Solid briefing. You identified the segmented churn risk, connected currency support to enterprise loss, and named an open question. Tighten the recommendation with a payback ratio next time."
+  );
+  const failSummary = pickFeedback(
+    "The briefing reports a blended on-time rate but misses the supplier-level signal. Break delivery and quality by supplier, look at the scorecard arc for any inflection point, quantify the cost of the worst supplier vs their annual spend, test a scenario, and name an alternative explanation.",
+    "The briefing reports an overall denial rate but misses the payer-level signal. Break denials down by payer, check the last-6-month period against the prior 18, look at appeal-overturn rates, quantify revenue at risk in dollars, test a scenario, and name an alternative explanation.",
+    "The briefing reports growth but misses the enterprise churn signal. Re-segment churn, link currency tickets to it, quantify ARR at risk over 12 months, test a scenario, and name what you cannot yet confirm."
+  );
 
   return {
     overall_score: overall,

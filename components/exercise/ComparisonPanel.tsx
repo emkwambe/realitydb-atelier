@@ -45,9 +45,21 @@ const MEDCORE_ROWS: RowDef[] = [
   { label: "Payback period",                 fmt: (v) => v==null?"—":`${v.toFixed(1)} mo`, pick: (s) => num(s,"payback_months"),              better: "none" },
 ];
 
+const SUPPLYLINK_ROWS: RowDef[] = [
+  { label: "Zhonghe late rate (months 15-24)", fmt: (v) => v==null?"—":`${v.toFixed(1)}%`, pick: (s) => { const n = num(s,"zhonghe_late_rate_post") ?? num(s,"zhonghe_late_rate"); return n==null?null:n*100; }, better: "lower" },
+  { label: "Zhonghe quality failure rate",     fmt: (v) => v==null?"—":`${v.toFixed(1)}%`, pick: (s) => { const n = num(s,"zhonghe_quality_failure_post") ?? num(s,"zhonghe_quality_failure"); return n==null?null:n*100; }, better: "lower" },
+  { label: "Zhonghe share of expediting",      fmt: (v) => v==null?"—":`${v.toFixed(1)}%`, pick: (s) => { const n = num(s,"zhonghe_expediting_share"); return n==null?null:n*100; }, better: "lower" },
+  { label: "Total cost of Zhonghe (annual)",   fmt: (v) => v==null?"—":`$${(v/1_000_000).toFixed(2)}M`, pick: (s) => num(s,"total_zhonghe_cost"), better: "lower" },
+  { label: "Transition cost",                  fmt: (v) => v==null?"—":`$${(v/1_000).toFixed(0)}K`,    pick: (s) => num(s,"transition_cost"), better: "none" },
+  { label: "Net 12-month benefit",             fmt: (v) => v==null?"—":`$${(v/1_000_000).toFixed(2)}M`, pick: (s) => num(s,"net_12mo_benefit"), better: "higher" },
+  { label: "Net 24-month benefit",             fmt: (v) => v==null?"—":`$${(v/1_000_000).toFixed(2)}M`, pick: (s) => num(s,"net_24mo_benefit"), better: "higher" },
+  { label: "Payback period",                   fmt: (v) => v==null?"—":`${v.toFixed(1)} mo`,             pick: (s) => num(s,"payback_months"), better: "lower" },
+];
+
 const ROWS_BY_COMPANY: Record<string, RowDef[]> = {
   novapay: NOVAPAY_ROWS,
   medcore: MEDCORE_ROWS,
+  supplylink: SUPPLYLINK_ROWS,
 };
 
 export function ComparisonPanel({ company = "novapay" }: { company?: string }) {

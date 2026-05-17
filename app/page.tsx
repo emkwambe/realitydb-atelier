@@ -23,11 +23,11 @@ const COMPANIES: CompanyCardProps[] = [
   },
   {
     slug: "supplylink",
-    name: "SupplyLink",
-    domain: "Logistics",
-    teaser: "A logistics company bleeding time and money.",
-    available: false,
-    tables: 24,
+    name: "SupplyLink Operations",
+    domain: "Supply Chain",
+    teaser: "A manufacturer whose on-time rate quietly collapsed at one supplier.",
+    available: true,
+    tables: 10,
     rows: 50000,
   },
   {

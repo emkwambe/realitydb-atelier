@@ -5,10 +5,12 @@ import type { DatasetVariant } from "@/lib/pglite";
 import type { ScenarioMeta } from "@/content/companies/novapay/scenarios";
 import { NOVAPAY_SCENARIOS } from "@/content/companies/novapay/scenarios";
 import { MEDCORE_SCENARIOS } from "@/content/companies/medcore/scenarios";
+import { SUPPLYLINK_SCENARIOS } from "@/content/companies/supplylink/scenarios";
 
 const SCENARIO_BY_COMPANY: Record<string, ScenarioMeta[]> = {
   novapay: NOVAPAY_SCENARIOS,
   medcore: MEDCORE_SCENARIOS,
+  supplylink: SUPPLYLINK_SCENARIOS,
 };
 
 interface Props {
