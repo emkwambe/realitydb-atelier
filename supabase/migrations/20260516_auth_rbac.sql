@@ -10,13 +10,15 @@ create extension if not exists "pgcrypto";
 create table if not exists public.cohorts (
   id uuid primary key default gen_random_uuid(),
   name text not null,
-  institution text,
-  instructor_id uuid references auth.users(id) on delete set null,
-  scenario_variant text default 'baseline',
-  difficulty text default 'standard',
-  created_at timestamptz not null default now(),
-  expires_at timestamptz
+  created_at timestamptz not null default now()
 );
+
+-- Backfill columns onto pre-existing cohorts tables.
+alter table public.cohorts add column if not exists institution text;
+alter table public.cohorts add column if not exists instructor_id uuid references auth.users(id) on delete set null;
+alter table public.cohorts add column if not exists scenario_variant text default 'baseline';
+alter table public.cohorts add column if not exists difficulty text default 'standard';
+alter table public.cohorts add column if not exists expires_at timestamptz;
 
 create index if not exists cohorts_instructor_idx on public.cohorts(instructor_id);
 
