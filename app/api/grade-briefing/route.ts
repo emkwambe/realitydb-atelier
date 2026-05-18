@@ -3,6 +3,7 @@ import { novaPayRubric } from "@/content/companies/novapay/rubric";
 import { medcoreRubric } from "@/content/companies/medcore/rubric";
 import { supplylinkRubric } from "@/content/companies/supplylink/rubric";
 import { towernetRubric } from "@/content/companies/towernet/rubric";
+import { clearbankRubric } from "@/content/companies/clearbank/rubric";
 import type { CompanyRubric } from "@/content/companies/novapay/rubric";
 
 const RUBRIC_BY_COMPANY: Record<string, CompanyRubric> = {
@@ -10,6 +11,7 @@ const RUBRIC_BY_COMPANY: Record<string, CompanyRubric> = {
   medcore: medcoreRubric,
   supplylink: supplylinkRubric,
   towernet: towernetRubric,
+  clearbank: clearbankRubric,
 };
 
 export const runtime = "nodejs";
@@ -209,6 +211,7 @@ function heuristicGrade(
   const isMedCore = companyId === "medcore";
   const isSupplyLink = companyId === "supplylink";
   const isTowerNet = companyId === "towernet";
+  const isClearBank = companyId === "clearbank";
 
   // Per-company keyword cohorts
   let segmentation_pass: boolean;
@@ -216,7 +219,20 @@ function heuristicGrade(
   let quant_pass: boolean;
   let reco_pass: boolean;
 
-  if (isTowerNet) {
+  if (isClearBank) {
+    segmentation_pass =
+      has(["act-a", "act-b", "act-c", "three accounts", "network", "beneficial owner"]) &&
+      has(["structuring", "layering", "sub-threshold", "sub-$9,500", "sub-9500"]);
+    causal_pass =
+      has(["31 usc 5324", "5324", "bsa", "31 cfr 1020.320", "1020.320", "ctr"]) &&
+      has(["sub-$9,500", "sub-9500", "sub-threshold", "48 hours", "48-hour", "layering"]);
+    quant_pass =
+      numbers >= 2 &&
+      has(["$3.2m", "$3,200,000", "$15m", "$1m-$15m", "$15 million", "fincen", "penalty"]);
+    reco_pass =
+      has(["recommend", "file sar", "sar", "enhanced monitoring", "edd", "freeze"]) &&
+      has(["31 cfr", "1020.320", "30 days", "30-day", "5324"]);
+  } else if (isTowerNet) {
     segmentation_pass =
       has(["se-447", "se447", "tower", "cluster"]) &&
       has(["churn", "subscriber", "outlier"]);
@@ -280,14 +296,16 @@ function heuristicGrade(
     ]) ||
     has(["correlation is not causation", "synthetic", "not yet"]);
 
-  const pickFeedback = <T,>(supply: T, med: T, nova: T, tower?: T): T =>
-    isTowerNet && tower !== undefined
-      ? tower
-      : isSupplyLink
-        ? supply
-        : isMedCore
-          ? med
-          : nova;
+  const pickFeedback = <T,>(supply: T, med: T, nova: T, tower?: T, bank?: T): T =>
+    isClearBank && bank !== undefined
+      ? bank
+      : isTowerNet && tower !== undefined
+        ? tower
+        : isSupplyLink
+          ? supply
+          : isMedCore
+            ? med
+            : nova;
 
   const segmentation: AxisGrade = segmentation_pass
     ? {
@@ -296,7 +314,8 @@ function heuristicGrade(
           "Identifies Zhonghe Industrial as the outlier supplier.",
           "Identifies MidState Mutual as the outlier payer.",
           "Segments churn by tier and identifies enterprise as the risk.",
-          "Drops past the regional aggregate to tower-level and identifies SE-447 as the outlier."
+          "Drops past the regional aggregate to tower-level and identifies SE-447 as the outlier.",
+          "Identifies the three flagged accounts as a coordinated network sharing one beneficial owner."
         ),
       }
     : {
@@ -305,7 +324,8 @@ function heuristicGrade(
           "Reports a blended on-time rate. Break it down by supplier.",
           "Reports an aggregate denial rate. Break it down by payer.",
           "Treats churn as a blended rate. Segment by tier.",
-          "Reports only regional churn. Drop one level deeper to the tower and name the outlier."
+          "Reports only regional churn. Drop one level deeper to the tower and name the outlier.",
+          "Treats the alerts as isolated. Connect ACT-A/B/C through the shared beneficial owner."
         ),
       };
 
@@ -316,7 +336,8 @@ function heuristicGrade(
           "Connects the August 2025 inflection in Zhonghe's scorecard to simultaneous degradation in on-time, quality, and lead time.",
           "Connects authorization-denial spike to a payer policy change in the last 6 months.",
           "Connects currency support to enterprise churn.",
-          "Correlates SE-447's 14 incidents with its 6.2% churn, contrasted against system averages of ~1 incident and 1.9% churn."
+          "Correlates SE-447's 14 incidents with its 6.2% churn, contrasted against system averages of ~1 incident and 1.9% churn.",
+          "Names the violation correctly: structuring under BSA 31 USC 5324, sub-$9,500 wires to evade the CTR threshold, 48-hour layering to ACT-B/C, offshore forwarding."
         ),
       }
     : {
@@ -325,7 +346,8 @@ function heuristicGrade(
           "Does not link the late-delivery rise to the month-15 inflection or to a specific supplier's scorecard arc.",
           "Does not link the denial spike to the last-6-month inflection or to authorization category.",
           "Does not establish a causal link between support tickets and churn.",
-          "Does not link SE-447's incident count to its subscriber churn rate — examine network_incidents alongside the churn data."
+          "Does not link SE-447's incident count to its subscriber churn rate — examine network_incidents alongside the churn data.",
+          "Describes the pattern without naming BSA 31 USC 5324 or connecting the sub-threshold amounts to CTR avoidance."
         ),
       };
 
@@ -336,7 +358,8 @@ function heuristicGrade(
           "Quantifies the $8.1M cost of the Zhonghe relationship with a derivation.",
           "Quantifies the $2.4M revenue at risk with a calculation method.",
           "Cites specific numbers and quantifies ARR at risk.",
-          "Quantifies $1.58M ARR at risk with the derivation (excess churn × subscribers × ARPU × 12)."
+          "Quantifies $1.58M ARR at risk with the derivation (excess churn × subscribers × ARPU × 12).",
+          "Quantifies $3.2M structured amount and the $1M-$15M FinCEN civil money penalty range with the relationship-revenue trade-off."
         ),
       }
     : {
@@ -345,7 +368,8 @@ function heuristicGrade(
           "Add specific numbers — expediting cost, rework cost, stockout impact, total vs annual spend.",
           "Add specific numbers — denied dollars, annualized at-risk, net collection delta.",
           "Add specific numbers — ARR at risk, % revenue, churn delta.",
-          "Add specific numbers — excess churn delta, ARPU, monthly revenue loss, annualized ARR at risk."
+          "Add specific numbers — excess churn delta, ARPU, monthly revenue loss, annualized ARR at risk.",
+          "Add specific numbers — total structured amount, FinCEN penalty range ($1M-$15M), and the $180K relationship-revenue cost of action."
         ),
       };
 
@@ -359,7 +383,8 @@ function heuristicGrade(
           "Recommends dual-source or exit and ties it to a scenario you tested.",
           "Recommends renegotiate or pivot and ties it to a scenario you tested.",
           "Recommends multi-currency and ties it to a scenario you tested.",
-          "Recommends maintenance or retention credits and ties it to a scenario you tested."
+          "Recommends maintenance or retention credits and ties it to a scenario you tested.",
+          "Recommends file-SAR or enhanced-monitoring with the regulatory citation and ties it to a scenario you tested."
         ),
       }
     : reco_pass
@@ -370,7 +395,8 @@ function heuristicGrade(
             "Recommendation is generic; specify cost ($450K vs $1.2M), payback, and scenario tested.",
             "Recommendation is generic; specify cost ($150K vs $800K), payback, and scenario tested.",
             "Recommendation is generic; specify scope, cost, payback, and scenario tested.",
-            "Recommendation is generic; specify cost ($2.1M vs $1.8M), payback, and scenario tested."
+            "Recommendation is generic; specify cost ($2.1M vs $1.8M), payback, and scenario tested.",
+            "Recommendation is generic; cite 31 CFR 1020.320, specify 30-day timeline, and name the escalation path (BSA Officer → Legal → Board)."
           ),
         };
 
@@ -391,13 +417,15 @@ function heuristicGrade(
     "Solid briefing. You isolated Zhonghe Industrial as the outlier, identified the August 2025 inflection across all four scorecard metrics, and quantified the $8.1M cost of the relationship. Tighten the recommendation with payback math next time.",
     "Solid briefing. You isolated MidState Mutual as the outlier payer, linked the denial spike to an authorization-rule change, and quantified the $2.4M at risk. Tighten the recommendation with payback math next time.",
     "Solid briefing. You identified the segmented churn risk, connected currency support to enterprise loss, and named an open question. Tighten the recommendation with a payback ratio next time.",
-    "Solid briefing. You found SE-447 at the tower level, linked its 14 incidents to the 6.2% churn rate, and quantified the $1.58M ARR at risk. Tighten the trade-off framing between capex and retention credits next time."
+    "Solid briefing. You found SE-447 at the tower level, linked its 14 incidents to the 6.2% churn rate, and quantified the $1.58M ARR at risk. Tighten the trade-off framing between capex and retention credits next time.",
+    "Solid memo. You identified ACT-A/B/C as a coordinated network, named structuring under BSA 31 USC 5324, and quantified the FinCEN penalty exposure against the relationship-revenue cost. Tighten the alternative-explanation paragraph next time — the EDD documentation request is the strongest hedge."
   );
   const failSummary = pickFeedback(
     "The briefing reports a blended on-time rate but misses the supplier-level signal. Break delivery and quality by supplier, look at the scorecard arc for any inflection point, quantify the cost of the worst supplier vs their annual spend, test a scenario, and name an alternative explanation.",
     "The briefing reports an overall denial rate but misses the payer-level signal. Break denials down by payer, check the last-6-month period against the prior 18, look at appeal-overturn rates, quantify revenue at risk in dollars, test a scenario, and name an alternative explanation.",
     "The briefing reports growth but misses the enterprise churn signal. Re-segment churn, link currency tickets to it, quantify ARR at risk over 12 months, test a scenario, and name what you cannot yet confirm.",
-    "The briefing reports a regional churn problem but doesn't drop to the tower level. Break churn by tower, look at network_incidents per tower, quantify revenue at risk in dollars, test a scenario, and name an alternative explanation worth checking."
+    "The briefing reports a regional churn problem but doesn't drop to the tower level. Break churn by tower, look at network_incidents per tower, quantify revenue at risk in dollars, test a scenario, and name an alternative explanation worth checking.",
+    "The memo names the alerts but doesn't connect ACT-A/B/C as a network or cite the BSA. Re-examine sub-threshold wire share, name 31 USC 5324, quantify FinCEN penalty exposure, test a scenario, and name what additional documentation would resolve the alternative explanation."
   );
 
   return {

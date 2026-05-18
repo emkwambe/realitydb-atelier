@@ -68,11 +68,26 @@ const TOWERNET_ROWS: RowDef[] = [
   { label: "Payback period",                 fmt: (v) => v==null?"—":`${v.toFixed(1)} mo`,                  pick: (s) => num(s,"payback_months"),         better: "lower" },
 ];
 
+const CLEARBANK_ROWS: RowDef[] = [
+  { label: "Structured wire count",        fmt: (v) => v==null?"—":`${v}`,                          pick: (s) => num(s,"structured_wire_count"),    better: "lower" },
+  { label: "Sub-$9,500 share",             fmt: (v) => v==null?"—":`${v.toFixed(0)}%`,              pick: (s) => { const n = num(s,"pct_below_9500"); return n==null?null:n*100; }, better: "lower" },
+  { label: "Avg incoming wire (ACT-A)",    fmt: (v) => v==null?"—":`$${(v/1_000).toFixed(0)}K`,     pick: (s) => num(s,"avg_incoming_wire"),        better: "none" },
+  { label: "Total structured amount",      fmt: (v) => v==null?"—":`$${(v/1_000_000).toFixed(2)}M`, pick: (s) => num(s,"total_structured_amount"),  better: "lower" },
+  { label: "EDD completion rate",          fmt: (v) => v==null?"—":`${(v*100).toFixed(0)}%`,        pick: (s) => num(s,"edd_completion_rate"),      better: "higher" },
+  { label: "Open critical fraud alerts",   fmt: (v) => v==null?"—":`${v}`,                          pick: (s) => num(s,"open_fraud_alerts"),        better: "lower" },
+  { label: "Regulatory exposure (max)",    fmt: (v) => v==null?"—":`$${(v/1_000_000).toFixed(0)}M`, pick: (s) => num(s,"regulatory_exposure_max"),  better: "lower" },
+  { label: "Accounts frozen (Scenario A)", fmt: (v) => v==null?"—":`${v}`,                          pick: (s) => num(s,"accounts_frozen"),          better: "none" },
+  { label: "Revenue lost (Scenario A)",    fmt: (v) => v==null?"—":`$${(v/1_000).toFixed(0)}K`,     pick: (s) => num(s,"relationship_revenue_lost"), better: "lower" },
+  { label: "Fine avoided (Scenario A)",    fmt: (v) => v==null?"—":`$${(v/1_000_000).toFixed(0)}M`, pick: (s) => num(s,"regulatory_fine_avoided"),  better: "higher" },
+  { label: "Net benefit (Scenario A)",     fmt: (v) => v==null?"—":`$${(v/1_000_000).toFixed(2)}M`, pick: (s) => num(s,"net_benefit"),              better: "higher" },
+];
+
 const ROWS_BY_COMPANY: Record<string, RowDef[]> = {
   novapay: NOVAPAY_ROWS,
   medcore: MEDCORE_ROWS,
   supplylink: SUPPLYLINK_ROWS,
   towernet: TOWERNET_ROWS,
+  clearbank: CLEARBANK_ROWS,
 };
 
 export function ComparisonPanel({ company = "novapay" }: { company?: string }) {

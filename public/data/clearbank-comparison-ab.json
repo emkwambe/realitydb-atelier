@@ -1,0 +1,38 @@
+{
+  "generated_at": "2026-05-18T01:11:51.223Z",
+  "baseline": {
+    "label": "Baseline",
+    "structured_wire_count": 94,
+    "pct_below_9500": 0.94,
+    "avg_incoming_wire": 87000,
+    "total_structured_amount": 3200000,
+    "offshore_destinations": [
+      "KY",
+      "CY",
+      "PA"
+    ],
+    "edd_completion_rate": 0,
+    "open_fraud_alerts": 6,
+    "sar_status": "draft",
+    "regulatory_exposure_max": 15000000
+  },
+  "scenario_a": {
+    "label": "Scenario A — File SAR, freeze accounts",
+    "sar_filed": true,
+    "accounts_frozen": 3,
+    "relationship_revenue_lost": 180000,
+    "regulatory_fine_avoided": 15000000,
+    "net_benefit": 14820000,
+    "timeline": "SAR filed within 30 days of detection"
+  },
+  "scenario_b": {
+    "label": "Scenario B — Enhanced monitoring, 30-day EDD",
+    "sar_filed": false,
+    "accounts_monitored": true,
+    "edd_requested": true,
+    "edd_deadline_days": 30,
+    "risk": "late SAR filing penalty if structuring continues during the 30-day window",
+    "fincen_exam_days_remaining": 60,
+    "timeline_risk": "EDD 30-day window plus 60-day FinCEN exam — tight overlap"
+  }
+}

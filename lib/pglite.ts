@@ -53,6 +53,7 @@ const COMPANY_ROW_TOKEN: Record<string, string> = {
   medcore: "50k",
   supplylink: "50k",
   towernet: "50k",
+  clearbank: "50k",
 };
 
 function datasetUrl(company: string, variant: DatasetVariant): string {

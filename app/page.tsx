@@ -41,11 +41,11 @@ const COMPANIES: CompanyCardProps[] = [
   },
   {
     slug: "clearbank",
-    name: "ClearBank",
+    name: "ClearBank Financial",
     domain: "AML / Banking",
-    teaser: "A bank with patterns that shouldn't exist.",
-    available: false,
-    tables: 9,
+    teaser: "A regional bank with a structuring pattern hiding in plain sight.",
+    available: true,
+    tables: 11,
     rows: 50000,
   },
   {

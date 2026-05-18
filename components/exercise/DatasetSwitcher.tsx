@@ -7,12 +7,14 @@ import { NOVAPAY_SCENARIOS } from "@/content/companies/novapay/scenarios";
 import { MEDCORE_SCENARIOS } from "@/content/companies/medcore/scenarios";
 import { SUPPLYLINK_SCENARIOS } from "@/content/companies/supplylink/scenarios";
 import { TOWERNET_SCENARIOS } from "@/content/companies/towernet/scenarios";
+import { CLEARBANK_SCENARIOS } from "@/content/companies/clearbank/scenarios";
 
 const SCENARIO_BY_COMPANY: Record<string, ScenarioMeta[]> = {
   novapay: NOVAPAY_SCENARIOS,
   medcore: MEDCORE_SCENARIOS,
   supplylink: SUPPLYLINK_SCENARIOS,
   towernet: TOWERNET_SCENARIOS,
+  clearbank: CLEARBANK_SCENARIOS,
 };
 
 interface Props {
