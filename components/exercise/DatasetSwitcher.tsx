@@ -8,6 +8,7 @@ import { MEDCORE_SCENARIOS } from "@/content/companies/medcore/scenarios";
 import { SUPPLYLINK_SCENARIOS } from "@/content/companies/supplylink/scenarios";
 import { TOWERNET_SCENARIOS } from "@/content/companies/towernet/scenarios";
 import { CLEARBANK_SCENARIOS } from "@/content/companies/clearbank/scenarios";
+import { ONCOCARE_SCENARIOS } from "@/content/companies/oncocare/scenarios";
 
 const SCENARIO_BY_COMPANY: Record<string, ScenarioMeta[]> = {
   novapay: NOVAPAY_SCENARIOS,
@@ -15,6 +16,7 @@ const SCENARIO_BY_COMPANY: Record<string, ScenarioMeta[]> = {
   supplylink: SUPPLYLINK_SCENARIOS,
   towernet: TOWERNET_SCENARIOS,
   clearbank: CLEARBANK_SCENARIOS,
+  oncocare: ONCOCARE_SCENARIOS,
 };
 
 interface Props {

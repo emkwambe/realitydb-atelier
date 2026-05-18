@@ -4,6 +4,7 @@ import { medcoreRubric } from "@/content/companies/medcore/rubric";
 import { supplylinkRubric } from "@/content/companies/supplylink/rubric";
 import { towernetRubric } from "@/content/companies/towernet/rubric";
 import { clearbankRubric } from "@/content/companies/clearbank/rubric";
+import { oncocareRubric } from "@/content/companies/oncocare/rubric";
 import type { CompanyRubric } from "@/content/companies/novapay/rubric";
 
 const RUBRIC_BY_COMPANY: Record<string, CompanyRubric> = {
@@ -12,6 +13,7 @@ const RUBRIC_BY_COMPANY: Record<string, CompanyRubric> = {
   supplylink: supplylinkRubric,
   towernet: towernetRubric,
   clearbank: clearbankRubric,
+  oncocare: oncocareRubric,
 };
 
 export const runtime = "nodejs";
@@ -212,6 +214,7 @@ function heuristicGrade(
   const isSupplyLink = companyId === "supplylink";
   const isTowerNet = companyId === "towernet";
   const isClearBank = companyId === "clearbank";
+  const isOncoCare = companyId === "oncocare";
 
   // Per-company keyword cohorts
   let segmentation_pass: boolean;
@@ -219,7 +222,20 @@ function heuristicGrade(
   let quant_pass: boolean;
   let reco_pass: boolean;
 
-  if (isClearBank) {
+  if (isOncoCare) {
+    segmentation_pass =
+      has(["site-07", "site 7", "site7", "sao paulo", "outlier site"]) &&
+      has(["response rate", "31%", "54%", "underperform"]);
+    causal_pass =
+      has(["underdos", "85%", "dose modification", "deviation"]) &&
+      has(["adverse event", "grade 3", "milder", "fewer side effects", "less efficacy"]);
+    quant_pass =
+      numbers >= 2 &&
+      has(["49.8%", "54.1%", "fda threshold", "50%", "4.3", "above threshold", "below threshold"]);
+    reco_pass =
+      has(["recommend", "exclude", "remediate", "per-protocol", "per protocol"]) &&
+      has(["site-07", "site 7", "ich e6", "gcp", "6 weeks", "fda advisory"]);
+  } else if (isClearBank) {
     segmentation_pass =
       has(["act-a", "act-b", "act-c", "three accounts", "network", "beneficial owner"]) &&
       has(["structuring", "layering", "sub-threshold", "sub-$9,500", "sub-9500"]);
@@ -296,16 +312,18 @@ function heuristicGrade(
     ]) ||
     has(["correlation is not causation", "synthetic", "not yet"]);
 
-  const pickFeedback = <T,>(supply: T, med: T, nova: T, tower?: T, bank?: T): T =>
-    isClearBank && bank !== undefined
-      ? bank
-      : isTowerNet && tower !== undefined
-        ? tower
-        : isSupplyLink
-          ? supply
-          : isMedCore
-            ? med
-            : nova;
+  const pickFeedback = <T,>(supply: T, med: T, nova: T, tower?: T, bank?: T, onco?: T): T =>
+    isOncoCare && onco !== undefined
+      ? onco
+      : isClearBank && bank !== undefined
+        ? bank
+        : isTowerNet && tower !== undefined
+          ? tower
+          : isSupplyLink
+            ? supply
+            : isMedCore
+              ? med
+              : nova;
 
   const segmentation: AxisGrade = segmentation_pass
     ? {
@@ -315,7 +333,8 @@ function heuristicGrade(
           "Identifies MidState Mutual as the outlier payer.",
           "Segments churn by tier and identifies enterprise as the risk.",
           "Drops past the regional aggregate to tower-level and identifies SE-447 as the outlier.",
-          "Identifies the three flagged accounts as a coordinated network sharing one beneficial owner."
+          "Identifies the three flagged accounts as a coordinated network sharing one beneficial owner.",
+          "Identifies SITE-07 (Sao Paulo) as the outlier site with 18% of patients and the 31% response rate."
         ),
       }
     : {
@@ -325,7 +344,8 @@ function heuristicGrade(
           "Reports an aggregate denial rate. Break it down by payer.",
           "Treats churn as a blended rate. Segment by tier.",
           "Reports only regional churn. Drop one level deeper to the tower and name the outlier.",
-          "Treats the alerts as isolated. Connect ACT-A/B/C through the shared beneficial owner."
+          "Treats the alerts as isolated. Connect ACT-A/B/C through the shared beneficial owner.",
+          "Reports only the trial-level response rate. Drop to the site level and name SITE-07."
         ),
       };
 
@@ -337,7 +357,8 @@ function heuristicGrade(
           "Connects authorization-denial spike to a payer policy change in the last 6 months.",
           "Connects currency support to enterprise churn.",
           "Correlates SE-447's 14 incidents with its 6.2% churn, contrasted against system averages of ~1 incident and 1.9% churn.",
-          "Names the violation correctly: structuring under BSA 31 USC 5324, sub-$9,500 wires to evade the CTR threshold, 48-hour layering to ACT-B/C, offshore forwarding."
+          "Names the violation correctly: structuring under BSA 31 USC 5324, sub-$9,500 wires to evade the CTR threshold, 48-hour layering to ACT-B/C, offshore forwarding.",
+          "Names the underdosing signature: SITE-07's 85% dose explains BOTH its 31% response rate AND its milder grade 3+ AE rate — less drug, less efficacy, fewer side effects."
         ),
       }
     : {
@@ -347,7 +368,8 @@ function heuristicGrade(
           "Does not link the denial spike to the last-6-month inflection or to authorization category.",
           "Does not establish a causal link between support tickets and churn.",
           "Does not link SE-447's incident count to its subscriber churn rate — examine network_incidents alongside the churn data.",
-          "Describes the pattern without naming BSA 31 USC 5324 or connecting the sub-threshold amounts to CTR avoidance."
+          "Describes the pattern without naming BSA 31 USC 5324 or connecting the sub-threshold amounts to CTR avoidance.",
+          "Does not name the underdosing signature — connect SITE-07's 85% dose to BOTH lower response AND milder AEs."
         ),
       };
 
@@ -359,7 +381,8 @@ function heuristicGrade(
           "Quantifies the $2.4M revenue at risk with a calculation method.",
           "Cites specific numbers and quantifies ARR at risk.",
           "Quantifies $1.58M ARR at risk with the derivation (excess churn × subscribers × ARPU × 12).",
-          "Quantifies $3.2M structured amount and the $1M-$15M FinCEN civil money penalty range with the relationship-revenue trade-off."
+          "Quantifies $3.2M structured amount and the $1M-$15M FinCEN civil money penalty range with the relationship-revenue trade-off.",
+          "Quantifies the SITE-07 impact: 49.8% → 54.1% ORR if excluded, a 4.3 percentage-point drag against the FDA 50% threshold."
         ),
       }
     : {
@@ -369,7 +392,8 @@ function heuristicGrade(
           "Add specific numbers — denied dollars, annualized at-risk, net collection delta.",
           "Add specific numbers — ARR at risk, % revenue, churn delta.",
           "Add specific numbers — excess churn delta, ARPU, monthly revenue loss, annualized ARR at risk.",
-          "Add specific numbers — total structured amount, FinCEN penalty range ($1M-$15M), and the $180K relationship-revenue cost of action."
+          "Add specific numbers — total structured amount, FinCEN penalty range ($1M-$15M), and the $180K relationship-revenue cost of action.",
+          "Add specific numbers — the per-protocol ORR (54.1%), the FDA threshold (50%), and the percentage-point drag from SITE-07."
         ),
       };
 
@@ -384,7 +408,8 @@ function heuristicGrade(
           "Recommends renegotiate or pivot and ties it to a scenario you tested.",
           "Recommends multi-currency and ties it to a scenario you tested.",
           "Recommends maintenance or retention credits and ties it to a scenario you tested.",
-          "Recommends file-SAR or enhanced-monitoring with the regulatory citation and ties it to a scenario you tested."
+          "Recommends file-SAR or enhanced-monitoring with the regulatory citation and ties it to a scenario you tested.",
+          "Recommends per-protocol exclusion or remediation with ICH E6 GCP and the FDA timeline, and ties it to a scenario you tested."
         ),
       }
     : reco_pass
@@ -396,7 +421,8 @@ function heuristicGrade(
             "Recommendation is generic; specify cost ($150K vs $800K), payback, and scenario tested.",
             "Recommendation is generic; specify scope, cost, payback, and scenario tested.",
             "Recommendation is generic; specify cost ($2.1M vs $1.8M), payback, and scenario tested.",
-            "Recommendation is generic; cite 31 CFR 1020.320, specify 30-day timeline, and name the escalation path (BSA Officer → Legal → Board)."
+            "Recommendation is generic; cite 31 CFR 1020.320, specify 30-day timeline, and name the escalation path (BSA Officer → Legal → Board).",
+            "Recommendation is generic; cite ICH E6 GCP, name the 6-week FDA advisory timeline, and pick exclude-vs-remediate."
           ),
         };
 
@@ -418,14 +444,16 @@ function heuristicGrade(
     "Solid briefing. You isolated MidState Mutual as the outlier payer, linked the denial spike to an authorization-rule change, and quantified the $2.4M at risk. Tighten the recommendation with payback math next time.",
     "Solid briefing. You identified the segmented churn risk, connected currency support to enterprise loss, and named an open question. Tighten the recommendation with a payback ratio next time.",
     "Solid briefing. You found SE-447 at the tower level, linked its 14 incidents to the 6.2% churn rate, and quantified the $1.58M ARR at risk. Tighten the trade-off framing between capex and retention credits next time.",
-    "Solid memo. You identified ACT-A/B/C as a coordinated network, named structuring under BSA 31 USC 5324, and quantified the FinCEN penalty exposure against the relationship-revenue cost. Tighten the alternative-explanation paragraph next time — the EDD documentation request is the strongest hedge."
+    "Solid memo. You identified ACT-A/B/C as a coordinated network, named structuring under BSA 31 USC 5324, and quantified the FinCEN penalty exposure against the relationship-revenue cost. Tighten the alternative-explanation paragraph next time — the EDD documentation request is the strongest hedge.",
+    "Solid memo. You found SITE-07 at the site level, named the underdosing signature, and quantified the 49.8% → 54.1% per-protocol shift. Strong epistemic-honesty paragraph would acknowledge the healthier-patient hypothesis alongside underdosing — a blinded chart review is the strongest hedge before the FDA advisory."
   );
   const failSummary = pickFeedback(
     "The briefing reports a blended on-time rate but misses the supplier-level signal. Break delivery and quality by supplier, look at the scorecard arc for any inflection point, quantify the cost of the worst supplier vs their annual spend, test a scenario, and name an alternative explanation.",
     "The briefing reports an overall denial rate but misses the payer-level signal. Break denials down by payer, check the last-6-month period against the prior 18, look at appeal-overturn rates, quantify revenue at risk in dollars, test a scenario, and name an alternative explanation.",
     "The briefing reports growth but misses the enterprise churn signal. Re-segment churn, link currency tickets to it, quantify ARR at risk over 12 months, test a scenario, and name what you cannot yet confirm.",
     "The briefing reports a regional churn problem but doesn't drop to the tower level. Break churn by tower, look at network_incidents per tower, quantify revenue at risk in dollars, test a scenario, and name an alternative explanation worth checking.",
-    "The memo names the alerts but doesn't connect ACT-A/B/C as a network or cite the BSA. Re-examine sub-threshold wire share, name 31 USC 5324, quantify FinCEN penalty exposure, test a scenario, and name what additional documentation would resolve the alternative explanation."
+    "The memo names the alerts but doesn't connect ACT-A/B/C as a network or cite the BSA. Re-examine sub-threshold wire share, name 31 USC 5324, quantify FinCEN penalty exposure, test a scenario, and name what additional documentation would resolve the alternative explanation.",
+    "The memo reports the ORR but doesn't name SITE-07 or the underdosing signature. Break response rate by site, examine dose adherence at the outlier, connect milder AEs to lower drug exposure, quantify the per-protocol shift, test a scenario, and name what additional data would confirm underdosing over the healthier-patient hypothesis."
   );
 
   return {

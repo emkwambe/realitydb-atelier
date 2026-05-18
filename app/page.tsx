@@ -50,12 +50,12 @@ const COMPANIES: CompanyCardProps[] = [
   },
   {
     slug: "oncocare",
-    name: "OncoCare",
+    name: "OncoCare Therapeutics",
     domain: "Oncology",
-    teaser: "A clinical trial where something is underperforming.",
-    available: false,
-    tables: 20,
-    rows: 50000,
+    teaser: "A Phase III trial sitting one tenth of a point under the FDA threshold.",
+    available: true,
+    tables: 12,
+    rows: 30000,
   },
 ];
 

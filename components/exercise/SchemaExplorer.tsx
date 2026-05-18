@@ -8,12 +8,14 @@ import { MEDCORE_CITATIONS } from "@/content/companies/medcore/citations";
 import { SUPPLYLINK_CITATIONS } from "@/content/companies/supplylink/citations";
 import { TOWERNET_CITATIONS } from "@/content/companies/towernet/citations";
 import { CLEARBANK_CITATIONS } from "@/content/companies/clearbank/citations";
+import { ONCOCARE_CITATIONS } from "@/content/companies/oncocare/citations";
 import type { CompanyCitations } from "@/content/companies/novapay/citations";
 import { NOVAPAY_QUICK_QUERIES } from "@/content/companies/novapay/quickQueries";
 import { MEDCORE_QUICK_QUERIES } from "@/content/companies/medcore/quickQueries";
 import { SUPPLYLINK_QUICK_QUERIES } from "@/content/companies/supplylink/quickQueries";
 import { TOWERNET_QUICK_QUERIES } from "@/content/companies/towernet/quickQueries";
 import { CLEARBANK_QUICK_QUERIES } from "@/content/companies/clearbank/quickQueries";
+import { ONCOCARE_QUICK_QUERIES } from "@/content/companies/oncocare/quickQueries";
 import type { CompanyQuickQueries } from "@/content/companies/novapay/quickQueries";
 
 const CITATIONS_BY_COMPANY: Record<string, CompanyCitations> = {
@@ -22,6 +24,7 @@ const CITATIONS_BY_COMPANY: Record<string, CompanyCitations> = {
   supplylink: SUPPLYLINK_CITATIONS,
   towernet: TOWERNET_CITATIONS,
   clearbank: CLEARBANK_CITATIONS,
+  oncocare: ONCOCARE_CITATIONS,
 };
 
 const QUICK_QUERIES_BY_COMPANY: Record<string, CompanyQuickQueries> = {
@@ -30,6 +33,7 @@ const QUICK_QUERIES_BY_COMPANY: Record<string, CompanyQuickQueries> = {
   supplylink: SUPPLYLINK_QUICK_QUERIES,
   towernet: TOWERNET_QUICK_QUERIES,
   clearbank: CLEARBANK_QUICK_QUERIES,
+  oncocare: ONCOCARE_QUICK_QUERIES,
 };
 
 interface ColumnInfo {

@@ -82,12 +82,25 @@ const CLEARBANK_ROWS: RowDef[] = [
   { label: "Net benefit (Scenario A)",     fmt: (v) => v==null?"—":`$${(v/1_000_000).toFixed(2)}M`, pick: (s) => num(s,"net_benefit"),              better: "higher" },
 ];
 
+const ONCOCARE_ROWS: RowDef[] = [
+  { label: "SITE-07 deviation rate",       fmt: (v) => v==null?"—":`${(v*100).toFixed(0)}%`,         pick: (s) => num(s,"site7_deviation_rate"),         better: "lower" },
+  { label: "SITE-07 dose pct of protocol", fmt: (v) => v==null?"—":`${(v*100).toFixed(0)}%`,         pick: (s) => num(s,"site7_dose_pct_protocol"),      better: "higher" },
+  { label: "SITE-07 response rate",        fmt: (v) => v==null?"—":`${(v*100).toFixed(1)}%`,         pick: (s) => num(s,"site7_response_rate"),          better: "higher" },
+  { label: "Other sites response rate",    fmt: (v) => v==null?"—":`${(v*100).toFixed(1)}%`,         pick: (s) => num(s,"other_sites_response_rate"),    better: "none" },
+  { label: "Overall response rate (ORR)",  fmt: (v) => v==null?"—":`${(v*100).toFixed(1)}%`,         pick: (s) => num(s,"overall_response_rate"),        better: "higher" },
+  { label: "FDA threshold",                fmt: (v) => v==null?"—":`${(v*100).toFixed(0)}%`,         pick: (s) => num(s,"fda_threshold"),                better: "none" },
+  { label: "SITE-07 grade 3+ AE rate",     fmt: (v) => v==null?"—":`${(v*100).toFixed(0)}%`,         pick: (s) => num(s,"site7_ae_grade3plus_rate"),     better: "none" },
+  { label: "Other grade 3+ AE rate",       fmt: (v) => v==null?"—":`${(v*100).toFixed(0)}%`,         pick: (s) => num(s,"other_sites_ae_grade3plus_rate"), better: "none" },
+  { label: "Timeline impact (months)",     fmt: (v) => v==null?"—":`${v} mo`,                       pick: (s) => num(s,"timeline_impact_months"),       better: "lower" },
+];
+
 const ROWS_BY_COMPANY: Record<string, RowDef[]> = {
   novapay: NOVAPAY_ROWS,
   medcore: MEDCORE_ROWS,
   supplylink: SUPPLYLINK_ROWS,
   towernet: TOWERNET_ROWS,
   clearbank: CLEARBANK_ROWS,
+  oncocare: ONCOCARE_ROWS,
 };
 
 export function ComparisonPanel({ company = "novapay" }: { company?: string }) {

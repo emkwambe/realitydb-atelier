@@ -1,0 +1,36 @@
+{
+  "generated_at": "2026-05-18T02:10:20.120Z",
+  "baseline": {
+    "label": "Baseline",
+    "site7_deviation_rate": 0.34,
+    "site7_dose_pct_protocol": 0.85,
+    "site7_response_rate": 0.31,
+    "other_sites_response_rate": 0.54,
+    "overall_response_rate": 0.498,
+    "fda_threshold": 0.5,
+    "gap_to_threshold": -0.002,
+    "site7_patient_pct": 0.18,
+    "site7_ae_grade3plus_rate": 0.15,
+    "other_sites_ae_grade3plus_rate": 0.3
+  },
+  "scenario_a": {
+    "label": "Scenario A — Exclude SITE-07 (per-protocol)",
+    "overall_response_rate": 0.541,
+    "above_fda_threshold": true,
+    "fda_gap": 0.041,
+    "site7_excluded": true,
+    "risk": "FDA may question post-hoc exclusion of 18% of patients",
+    "benefit": "NDA submission proceeds on current timeline",
+    "dsmb_decision": "continue"
+  },
+  "scenario_b": {
+    "label": "Scenario B — Remediate SITE-07 (enhanced monitoring)",
+    "overall_response_rate": 0.498,
+    "above_fda_threshold": false,
+    "site7_future_dose_corrected": true,
+    "new_monitoring_visits": 3,
+    "timeline_impact_months": 6,
+    "value": "demonstrates sponsor commitment to protocol integrity",
+    "dsmb_decision": "request_additional_data"
+  }
+}
