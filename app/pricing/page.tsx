@@ -31,7 +31,7 @@ const LEARNER_TIERS: Tier[] = [
     features: [
       "10 exercises + CEO briefing",
       "PGlite in-browser PostgreSQL",
-      "Auto-graded SQL + LLM-graded memo",
+      "Auto-graded briefing on a 5-axis rubric · feeds your rank",
       "Verifiable Business Acumen Certificate",
     ],
     ctaLabel: "Start NovaPay",
@@ -148,7 +148,7 @@ export default function PricingPage() {
       <header className="mx-auto max-w-2xl text-center">
         <div className="inline-flex items-center gap-2 border border-[#1e293b] bg-[#111827] px-3 py-1 font-mono text-[11px] uppercase tracking-wider text-[#64748b]">
           <span className="inline-block size-1.5 rounded-full bg-[#06d6a0]" />
-          Every tier ships the signed credential
+          Auto-graded · ranked · signed credential — every tier
         </div>
         <h1 className="mt-5 text-3xl font-medium text-[#e2e8f0] md:text-5xl">
           The deliverable is the same
@@ -210,11 +210,11 @@ export default function PricingPage() {
           </div>
           <div>
             <div className="font-mono text-[11px] uppercase tracking-wider text-[#a855f7]">
-              Claude-graded briefing
+              Auto-graded and ranked
             </div>
             <p className="mt-2 text-[#e2e8f0]/80">
-              5-axis rubric including epistemic honesty. We grade judgement,
-              not row-set matches.
+              5-axis rubric including epistemic honesty. Every score feeds your
+              public Atelier rank. We grade judgement, not row-set matches.
             </p>
           </div>
         </div>

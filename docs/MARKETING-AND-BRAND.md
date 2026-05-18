@@ -188,6 +188,31 @@ page now embodies:
    cutting-edge, best-in-class, world-class, revolutionize, next-gen,
    ecosystem, holistic.
 6. **One- or two-sentence paragraphs.** Trading-terminal density.
+7. **No vendor leakage in marketing copy.** Prefer **"auto-graded
+   and ranked"** over "Claude-graded" / "LLM-graded" / "AI-graded"
+   anywhere a buyer or learner sees it. The reasons:
+   - Outcome-language, not vendor-language. Buyers care what they
+     get, not which API we called.
+   - Future-proof. If we move to Claude 5, swap providers, or run a
+     local fine-tune for cost, the copy doesn't break.
+   - Pre-empts the "why don't I just use Claude directly?" objection.
+     The rubric and the rank ladder are ours; the model behind them
+     is interchangeable.
+
+   **Where "Claude" *is* fine:** technical docs, `CLAUDE.md`,
+   `docs/TRD*`, code comments, the build-decisions section. Anything
+   internal-engineering-facing.
+
+   **Three forms of the phrase, by surface size:**
+   | Surface | Phrasing |
+   |---|---|
+   | Pills, hero badges | `auto-graded and ranked` |
+   | Subheads, persona cards | `auto-graded on a 5-axis rubric · public rank` |
+   | Proof sections, pricing footers | `Auto-graded against a 5-axis rubric including epistemic honesty. Score feeds your public Atelier rank.` |
+
+   Long-form copy must always tie "auto-graded" back to the rubric,
+   so a casual reader does not mis-hear it as row-set matching (the
+   DataCamp pattern we explicitly position against).
 
 When in doubt, read the closing reframe block on the landing page out
 loud — "Your analysts can read a dashboard. After this, they can

@@ -20,7 +20,7 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "RealityDB Atelier — The business school that runs on live data",
   description:
-    "Six synthetic companies. Real PostgreSQL databases. One CEO briefing that proves you understand the business.",
+    "Six synthetic companies. Real PostgreSQL databases. One CEO briefing — auto-graded and ranked.",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || "https://atelier.realitydb.dev"
   ),
