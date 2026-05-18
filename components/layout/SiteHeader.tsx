@@ -57,9 +57,10 @@ export function SiteHeader() {
       <div className="mx-auto flex h-14 max-w-[1280px] items-center justify-between px-6">
         <Link
           href="/"
-          className="font-mono text-[15px] tracking-tight text-[#06d6a0] hover:opacity-90"
+          className="font-mono text-[15px] tracking-tight hover:opacity-90"
         >
-          RealityDB Atelier
+          <span className="text-[#06d6a0]">RealityDB</span>
+          <span className="text-[#00f5d4]">Atelier</span>
         </Link>
         <nav className="flex items-center gap-6 text-sm text-[#e2e8f0]/80">
           {navLinks.map((link) => (

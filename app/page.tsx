@@ -7,7 +7,8 @@ const COMPANIES: CompanyCardProps[] = [
     slug: "novapay",
     name: "NovaPay",
     domain: "FinTech SaaS",
-    teaser: "A Series B payments company with a retention problem.",
+    teaser:
+      "A Series B payments company. The lead investor flagged retention. Find out why.",
     available: true,
     tables: 13,
     rows: 50000,
@@ -16,7 +17,8 @@ const COMPANIES: CompanyCardProps[] = [
     slug: "medcore",
     name: "MedCore Health",
     domain: "Healthcare",
-    teaser: "A hospital where one payer is quietly denying everything.",
+    teaser:
+      "A regional hospital system. Net collection rate dropped 4 points. Find out why.",
     available: true,
     tables: 12,
     rows: 50000,
@@ -25,7 +27,8 @@ const COMPANIES: CompanyCardProps[] = [
     slug: "supplylink",
     name: "SupplyLink Operations",
     domain: "Supply Chain",
-    teaser: "A manufacturer whose on-time rate quietly collapsed at one supplier.",
+    teaser:
+      "A manufacturer. COGS up 11 points. On-time delivery down 12 points. Find out why.",
     available: true,
     tables: 10,
     rows: 50000,
@@ -34,7 +37,8 @@ const COMPANIES: CompanyCardProps[] = [
     slug: "towernet",
     name: "TowerNet Communications",
     domain: "Telecom",
-    teaser: "A telco where one tower cluster is quietly driving the churn spike.",
+    teaser:
+      "A mobile operator. Churn jumped from 2.1% to 2.9% in one region. Find out why.",
     available: true,
     tables: 10,
     rows: 50000,
@@ -43,7 +47,8 @@ const COMPANIES: CompanyCardProps[] = [
     slug: "clearbank",
     name: "ClearBank Financial",
     domain: "AML / Banking",
-    teaser: "A regional bank with a structuring pattern hiding in plain sight.",
+    teaser:
+      "A regional bank. Internal audit flagged unusual wire activity. Find out why.",
     available: true,
     tables: 11,
     rows: 50000,
@@ -52,7 +57,8 @@ const COMPANIES: CompanyCardProps[] = [
     slug: "oncocare",
     name: "OncoCare Therapeutics",
     domain: "Oncology",
-    teaser: "A Phase III trial sitting one tenth of a point under the FDA threshold.",
+    teaser:
+      "A Phase III trial. Overall response rate: 49.8%. The FDA threshold is 50%. Find out why.",
     available: true,
     tables: 12,
     rows: 30000,
@@ -66,12 +72,13 @@ export default function HomePage() {
         <h1 className="text-4xl font-medium tracking-tight text-[#e2e8f0] md:text-6xl">
           Don&apos;t read about the business.
           <br />
-          <span className="text-[#06d6a0]">Interrogate it.</span>
+          <span className="text-[#00f5d4]">Interrogate its dynamics in data.</span>
         </h1>
         <p className="mt-6 text-base text-[#e2e8f0]/80 md:text-lg">
           Six synthetic companies. Real PostgreSQL databases.
           <br />
-          One CEO briefing that proves you understand the business.
+          One CEO briefing that proves you understand the business —{" "}
+          <span className="text-[#e2e8f0]">not just the queries.</span>
         </p>
         <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
           <Link
@@ -100,14 +107,20 @@ export default function HomePage() {
 
       <section className="mt-20 grid grid-cols-1 gap-10 md:mt-28 md:grid-cols-3 md:gap-6">
         <ValueProp
+          number="01"
+          accent="cyan"
           title="Query the database"
           body="Real PostgreSQL via PGlite. No setup. No account needed to explore."
         />
         <ValueProp
+          number="02"
+          accent="green"
           title="Discover the story"
           body="The insight is in the data — not in a case document. You find it. Or you miss it."
         />
         <ValueProp
+          number="03"
+          accent="cyan"
           title="Brief the CEO"
           body="Write the memo. Cite your queries. Earn the credential."
         />
@@ -116,10 +129,27 @@ export default function HomePage() {
   );
 }
 
-function ValueProp({ title, body }: { title: string; body: string }) {
+function ValueProp({
+  number,
+  accent,
+  title,
+  body,
+}: {
+  number: string;
+  accent: "cyan" | "green";
+  title: string;
+  body: string;
+}) {
+  const accentColor = accent === "cyan" ? "#00f5d4" : "#06d6a0";
   return (
-    <div className="border-l-2 border-[#06d6a0] pl-5">
-      <div className="text-sm font-medium text-[#e2e8f0]">{title}</div>
+    <div className="border-l-2 pl-5" style={{ borderColor: accentColor }}>
+      <div
+        className="font-mono text-xs uppercase tracking-wider"
+        style={{ color: accentColor }}
+      >
+        {number}
+      </div>
+      <div className="mt-1 text-sm font-medium text-[#e2e8f0]">{title}</div>
       <p className="mt-2 text-sm leading-relaxed text-[#64748b]">{body}</p>
     </div>
   );

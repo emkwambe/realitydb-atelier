@@ -13,8 +13,15 @@ export type CompanyCardProps = {
 
 export function CompanyCard(c: CompanyCardProps) {
   const rowsFmt = c.rows >= 1000 ? `${Math.round(c.rows / 1000)}K rows` : `${c.rows} rows`;
+  // Available cards get a cyan left border that fades in on hover.
+  // Coming-soon cards keep the neutral border so they stay quiet.
+  const hoverClasses = c.available
+    ? "border-l-2 border-l-transparent hover:border-l-[#00f5d4] hover:border-[#06d6a0]/60"
+    : "hover:border-[#1e293b]";
   return (
-    <div className="flex flex-col gap-3 border border-[#1e293b] bg-[#111827] p-5 transition hover:border-[#06d6a0]/60">
+    <div
+      className={`flex flex-col gap-3 border border-[#1e293b] bg-[#111827] p-5 transition ${hoverClasses}`}
+    >
       <div className="flex items-center justify-between gap-3">
         <div className="text-base font-medium text-[#e2e8f0]">{c.name}</div>
         <span className="text-[11px] uppercase tracking-wider text-[#64748b]">
