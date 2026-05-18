@@ -67,6 +67,14 @@
   --color-border-custom: #1e293b;
   --color-muted-brand: #64748b;
 
+  /* Tri-color accent system — mirrors realitydb.dev parent brand.
+     Use sparingly: brand green for primary CTAs and success, cyan for
+     the one highlighted phrase per heading, purple for a single
+     terminal punctuation or a secondary outline CTA. Never gradients,
+     never two accents on the same word. */
+  --color-accent-cyan: #00f5d4;
+  --color-accent-purple: #a855f7;
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
