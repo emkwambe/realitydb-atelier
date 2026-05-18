@@ -6,22 +6,26 @@ import { initPGlite, runQuery } from "@/lib/pglite";
 import { NOVAPAY_CITATIONS } from "@/content/companies/novapay/citations";
 import { MEDCORE_CITATIONS } from "@/content/companies/medcore/citations";
 import { SUPPLYLINK_CITATIONS } from "@/content/companies/supplylink/citations";
+import { TOWERNET_CITATIONS } from "@/content/companies/towernet/citations";
 import type { CompanyCitations } from "@/content/companies/novapay/citations";
 import { NOVAPAY_QUICK_QUERIES } from "@/content/companies/novapay/quickQueries";
 import { MEDCORE_QUICK_QUERIES } from "@/content/companies/medcore/quickQueries";
 import { SUPPLYLINK_QUICK_QUERIES } from "@/content/companies/supplylink/quickQueries";
+import { TOWERNET_QUICK_QUERIES } from "@/content/companies/towernet/quickQueries";
 import type { CompanyQuickQueries } from "@/content/companies/novapay/quickQueries";
 
 const CITATIONS_BY_COMPANY: Record<string, CompanyCitations> = {
   novapay: NOVAPAY_CITATIONS,
   medcore: MEDCORE_CITATIONS,
   supplylink: SUPPLYLINK_CITATIONS,
+  towernet: TOWERNET_CITATIONS,
 };
 
 const QUICK_QUERIES_BY_COMPANY: Record<string, CompanyQuickQueries> = {
   novapay: NOVAPAY_QUICK_QUERIES,
   medcore: MEDCORE_QUICK_QUERIES,
   supplylink: SUPPLYLINK_QUICK_QUERIES,
+  towernet: TOWERNET_QUICK_QUERIES,
 };
 
 interface ColumnInfo {

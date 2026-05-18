@@ -32,11 +32,11 @@ const COMPANIES: CompanyCardProps[] = [
   },
   {
     slug: "towernet",
-    name: "TowerNet",
+    name: "TowerNet Communications",
     domain: "Telecom",
-    teaser: "A telco where one region is quietly failing.",
-    available: false,
-    tables: 21,
+    teaser: "A telco where one tower cluster is quietly driving the churn spike.",
+    available: true,
+    tables: 10,
     rows: 50000,
   },
   {

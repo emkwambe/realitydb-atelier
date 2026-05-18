@@ -6,11 +6,13 @@ import type { ScenarioMeta } from "@/content/companies/novapay/scenarios";
 import { NOVAPAY_SCENARIOS } from "@/content/companies/novapay/scenarios";
 import { MEDCORE_SCENARIOS } from "@/content/companies/medcore/scenarios";
 import { SUPPLYLINK_SCENARIOS } from "@/content/companies/supplylink/scenarios";
+import { TOWERNET_SCENARIOS } from "@/content/companies/towernet/scenarios";
 
 const SCENARIO_BY_COMPANY: Record<string, ScenarioMeta[]> = {
   novapay: NOVAPAY_SCENARIOS,
   medcore: MEDCORE_SCENARIOS,
   supplylink: SUPPLYLINK_SCENARIOS,
+  towernet: TOWERNET_SCENARIOS,
 };
 
 interface Props {

@@ -2,12 +2,14 @@ import { NextResponse } from "next/server";
 import { novaPayRubric } from "@/content/companies/novapay/rubric";
 import { medcoreRubric } from "@/content/companies/medcore/rubric";
 import { supplylinkRubric } from "@/content/companies/supplylink/rubric";
+import { towernetRubric } from "@/content/companies/towernet/rubric";
 import type { CompanyRubric } from "@/content/companies/novapay/rubric";
 
 const RUBRIC_BY_COMPANY: Record<string, CompanyRubric> = {
   novapay: novaPayRubric,
   medcore: medcoreRubric,
   supplylink: supplylinkRubric,
+  towernet: towernetRubric,
 };
 
 export const runtime = "nodejs";
@@ -206,6 +208,7 @@ function heuristicGrade(
 
   const isMedCore = companyId === "medcore";
   const isSupplyLink = companyId === "supplylink";
+  const isTowerNet = companyId === "towernet";
 
   // Per-company keyword cohorts
   let segmentation_pass: boolean;
@@ -213,7 +216,20 @@ function heuristicGrade(
   let quant_pass: boolean;
   let reco_pass: boolean;
 
-  if (isSupplyLink) {
+  if (isTowerNet) {
+    segmentation_pass =
+      has(["se-447", "se447", "tower", "cluster"]) &&
+      has(["churn", "subscriber", "outlier"]);
+    causal_pass =
+      has(["incident", "outage", "maintenance", "backlog", "uptime"]) &&
+      has(["14", "8 months", "inflection", "spike", "correlat"]);
+    quant_pass =
+      numbers >= 2 &&
+      has(["$1.58m", "1.58 million", "$1.58", "131,580", "arpu", "arr at risk", "annual"]);
+    reco_pass =
+      has(["recommend", "maintenance", "credits", "capex", "retention"]) &&
+      has(["payback", "$2.1m", "$1.8m", "trade-off", "tradeoff"]);
+  } else if (isSupplyLink) {
     segmentation_pass =
       has(["zhonghe", "supplier", "monterrey", "bangalore", "rheinmetal"]) &&
       has(["late", "delivery", "on-time", "on time", "quality"]);
@@ -264,8 +280,14 @@ function heuristicGrade(
     ]) ||
     has(["correlation is not causation", "synthetic", "not yet"]);
 
-  const pickFeedback = <T,>(supply: T, med: T, nova: T): T =>
-    isSupplyLink ? supply : isMedCore ? med : nova;
+  const pickFeedback = <T,>(supply: T, med: T, nova: T, tower?: T): T =>
+    isTowerNet && tower !== undefined
+      ? tower
+      : isSupplyLink
+        ? supply
+        : isMedCore
+          ? med
+          : nova;
 
   const segmentation: AxisGrade = segmentation_pass
     ? {
@@ -273,7 +295,8 @@ function heuristicGrade(
         feedback: pickFeedback(
           "Identifies Zhonghe Industrial as the outlier supplier.",
           "Identifies MidState Mutual as the outlier payer.",
-          "Segments churn by tier and identifies enterprise as the risk."
+          "Segments churn by tier and identifies enterprise as the risk.",
+          "Drops past the regional aggregate to tower-level and identifies SE-447 as the outlier."
         ),
       }
     : {
@@ -281,7 +304,8 @@ function heuristicGrade(
         feedback: pickFeedback(
           "Reports a blended on-time rate. Break it down by supplier.",
           "Reports an aggregate denial rate. Break it down by payer.",
-          "Treats churn as a blended rate. Segment by tier."
+          "Treats churn as a blended rate. Segment by tier.",
+          "Reports only regional churn. Drop one level deeper to the tower and name the outlier."
         ),
       };
 
@@ -291,7 +315,8 @@ function heuristicGrade(
         feedback: pickFeedback(
           "Connects the August 2025 inflection in Zhonghe's scorecard to simultaneous degradation in on-time, quality, and lead time.",
           "Connects authorization-denial spike to a payer policy change in the last 6 months.",
-          "Connects currency support to enterprise churn."
+          "Connects currency support to enterprise churn.",
+          "Correlates SE-447's 14 incidents with its 6.2% churn, contrasted against system averages of ~1 incident and 1.9% churn."
         ),
       }
     : {
@@ -299,7 +324,8 @@ function heuristicGrade(
         feedback: pickFeedback(
           "Does not link the late-delivery rise to the month-15 inflection or to a specific supplier's scorecard arc.",
           "Does not link the denial spike to the last-6-month inflection or to authorization category.",
-          "Does not establish a causal link between support tickets and churn."
+          "Does not establish a causal link between support tickets and churn.",
+          "Does not link SE-447's incident count to its subscriber churn rate — examine network_incidents alongside the churn data."
         ),
       };
 
@@ -309,7 +335,8 @@ function heuristicGrade(
         feedback: pickFeedback(
           "Quantifies the $8.1M cost of the Zhonghe relationship with a derivation.",
           "Quantifies the $2.4M revenue at risk with a calculation method.",
-          "Cites specific numbers and quantifies ARR at risk."
+          "Cites specific numbers and quantifies ARR at risk.",
+          "Quantifies $1.58M ARR at risk with the derivation (excess churn × subscribers × ARPU × 12)."
         ),
       }
     : {
@@ -317,7 +344,8 @@ function heuristicGrade(
         feedback: pickFeedback(
           "Add specific numbers — expediting cost, rework cost, stockout impact, total vs annual spend.",
           "Add specific numbers — denied dollars, annualized at-risk, net collection delta.",
-          "Add specific numbers — ARR at risk, % revenue, churn delta."
+          "Add specific numbers — ARR at risk, % revenue, churn delta.",
+          "Add specific numbers — excess churn delta, ARPU, monthly revenue loss, annualized ARR at risk."
         ),
       };
 
@@ -330,7 +358,8 @@ function heuristicGrade(
         feedback: pickFeedback(
           "Recommends dual-source or exit and ties it to a scenario you tested.",
           "Recommends renegotiate or pivot and ties it to a scenario you tested.",
-          "Recommends multi-currency and ties it to a scenario you tested."
+          "Recommends multi-currency and ties it to a scenario you tested.",
+          "Recommends maintenance or retention credits and ties it to a scenario you tested."
         ),
       }
     : reco_pass
@@ -340,7 +369,8 @@ function heuristicGrade(
           feedback: pickFeedback(
             "Recommendation is generic; specify cost ($450K vs $1.2M), payback, and scenario tested.",
             "Recommendation is generic; specify cost ($150K vs $800K), payback, and scenario tested.",
-            "Recommendation is generic; specify scope, cost, payback, and scenario tested."
+            "Recommendation is generic; specify scope, cost, payback, and scenario tested.",
+            "Recommendation is generic; specify cost ($2.1M vs $1.8M), payback, and scenario tested."
           ),
         };
 
@@ -360,12 +390,14 @@ function heuristicGrade(
   const passSummary = pickFeedback(
     "Solid briefing. You isolated Zhonghe Industrial as the outlier, identified the August 2025 inflection across all four scorecard metrics, and quantified the $8.1M cost of the relationship. Tighten the recommendation with payback math next time.",
     "Solid briefing. You isolated MidState Mutual as the outlier payer, linked the denial spike to an authorization-rule change, and quantified the $2.4M at risk. Tighten the recommendation with payback math next time.",
-    "Solid briefing. You identified the segmented churn risk, connected currency support to enterprise loss, and named an open question. Tighten the recommendation with a payback ratio next time."
+    "Solid briefing. You identified the segmented churn risk, connected currency support to enterprise loss, and named an open question. Tighten the recommendation with a payback ratio next time.",
+    "Solid briefing. You found SE-447 at the tower level, linked its 14 incidents to the 6.2% churn rate, and quantified the $1.58M ARR at risk. Tighten the trade-off framing between capex and retention credits next time."
   );
   const failSummary = pickFeedback(
     "The briefing reports a blended on-time rate but misses the supplier-level signal. Break delivery and quality by supplier, look at the scorecard arc for any inflection point, quantify the cost of the worst supplier vs their annual spend, test a scenario, and name an alternative explanation.",
     "The briefing reports an overall denial rate but misses the payer-level signal. Break denials down by payer, check the last-6-month period against the prior 18, look at appeal-overturn rates, quantify revenue at risk in dollars, test a scenario, and name an alternative explanation.",
-    "The briefing reports growth but misses the enterprise churn signal. Re-segment churn, link currency tickets to it, quantify ARR at risk over 12 months, test a scenario, and name what you cannot yet confirm."
+    "The briefing reports growth but misses the enterprise churn signal. Re-segment churn, link currency tickets to it, quantify ARR at risk over 12 months, test a scenario, and name what you cannot yet confirm.",
+    "The briefing reports a regional churn problem but doesn't drop to the tower level. Break churn by tower, look at network_incidents per tower, quantify revenue at risk in dollars, test a scenario, and name an alternative explanation worth checking."
   );
 
   return {

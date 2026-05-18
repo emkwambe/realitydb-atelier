@@ -56,10 +56,23 @@ const SUPPLYLINK_ROWS: RowDef[] = [
   { label: "Payback period",                   fmt: (v) => v==null?"—":`${v.toFixed(1)} mo`,             pick: (s) => num(s,"payback_months"), better: "lower" },
 ];
 
+const TOWERNET_ROWS: RowDef[] = [
+  { label: "SE-447 incident count",          fmt: (v) => v==null?"—":`${v}`,                                pick: (s) => num(s,"se447_incident_count"),   better: "lower" },
+  { label: "SE-447 churn rate",              fmt: (v) => v==null?"—":`${v.toFixed(1)}%`,                    pick: (s) => { const n = num(s,"se447_churn_rate"); return n==null?null:n*100; }, better: "lower" },
+  { label: "Other towers churn rate",        fmt: (v) => v==null?"—":`${v.toFixed(1)}%`,                    pick: (s) => { const n = num(s,"other_towers_churn_rate"); return n==null?null:n*100; }, better: "none" },
+  { label: "Monthly revenue loss",           fmt: (v) => v==null?"—":`$${(v/1_000).toFixed(0)}K`,           pick: (s) => num(s,"monthly_revenue_loss"),   better: "lower" },
+  { label: "ARR at risk",                    fmt: (v) => v==null?"—":`$${(v/1_000_000).toFixed(2)}M`,       pick: (s) => num(s,"arr_at_risk"),            better: "lower" },
+  { label: "ARR recovered (Scenario A)",     fmt: (v) => v==null?"—":`$${(v/1_000_000).toFixed(2)}M`,       pick: (s) => num(s,"arr_recovered"),          better: "higher" },
+  { label: "Revenue retained (Scenario B)",  fmt: (v) => v==null?"—":`$${(v/1_000_000).toFixed(2)}M`,       pick: (s) => num(s,"revenue_retained"),       better: "higher" },
+  { label: "Upfront cost",                   fmt: (v) => v==null?"—":`$${(v/1_000_000).toFixed(2)}M`,       pick: (s) => num(s,"capex_cost") ?? num(s,"credit_cost"), better: "none" },
+  { label: "Payback period",                 fmt: (v) => v==null?"—":`${v.toFixed(1)} mo`,                  pick: (s) => num(s,"payback_months"),         better: "lower" },
+];
+
 const ROWS_BY_COMPANY: Record<string, RowDef[]> = {
   novapay: NOVAPAY_ROWS,
   medcore: MEDCORE_ROWS,
   supplylink: SUPPLYLINK_ROWS,
+  towernet: TOWERNET_ROWS,
 };
 
 export function ComparisonPanel({ company = "novapay" }: { company?: string }) {

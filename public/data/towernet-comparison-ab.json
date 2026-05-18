@@ -1,0 +1,36 @@
+{
+  "generated_at": "2026-05-18T00:36:49.209Z",
+  "baseline": {
+    "label": "Baseline",
+    "se447_incident_count": 14,
+    "se447_churn_rate": 0.062,
+    "other_towers_churn_rate": 0.019,
+    "se447_subscriber_count": 68000,
+    "excess_churn_monthly": 2924,
+    "arpu_dollars": 45,
+    "monthly_revenue_loss": 131580,
+    "arr_at_risk": 1579000
+  },
+  "scenario_a": {
+    "label": "Scenario A — Emergency tower maintenance",
+    "se447_incident_count": 14,
+    "se447_churn_rate": 0.023,
+    "other_towers_churn_rate": 0.019,
+    "capex_cost": 2100000,
+    "monthly_revenue_recovered": 88452,
+    "arr_recovered": 1061424,
+    "payback_months": 23.7,
+    "network_fixed": true
+  },
+  "scenario_b": {
+    "label": "Scenario B — Proactive retention credits",
+    "se447_incident_count": 14,
+    "se447_churn_rate": 0.037,
+    "other_towers_churn_rate": 0.019,
+    "credit_cost": 1800000,
+    "subscribers_retained": 1169,
+    "revenue_retained": 630126,
+    "network_fixed": false,
+    "risk": "SE-447 still degraded — churn will resume after credits expire"
+  }
+}

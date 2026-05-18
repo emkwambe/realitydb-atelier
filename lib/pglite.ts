@@ -52,6 +52,7 @@ const COMPANY_ROW_TOKEN: Record<string, string> = {
   novapay: "5k",
   medcore: "50k",
   supplylink: "50k",
+  towernet: "50k",
 };
 
 function datasetUrl(company: string, variant: DatasetVariant): string {
