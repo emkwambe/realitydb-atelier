@@ -146,12 +146,19 @@ export default function PricingPage() {
   return (
     <div className="mx-auto max-w-[1280px] px-6 py-16">
       <header className="mx-auto max-w-2xl text-center">
-        <h1 className="text-3xl font-medium text-[#e2e8f0] md:text-4xl">
-          Choose how you learn
+        <div className="inline-flex items-center gap-2 border border-[#1e293b] bg-[#111827] px-3 py-1 font-mono text-[11px] uppercase tracking-wider text-[#64748b]">
+          <span className="inline-block size-1.5 rounded-full bg-[#06d6a0]" />
+          Every tier ships the signed credential
+        </div>
+        <h1 className="mt-5 text-3xl font-medium text-[#e2e8f0] md:text-5xl">
+          The deliverable is the same
           <span className="text-[#a855f7]">.</span>
+          <br />
+          <span className="text-[#00f5d4]">The audience is the price.</span>
         </h1>
-        <p className="mt-3 text-sm text-[#64748b]">
-          One module, all six, or program-wide. Stripe checkout wires up in v2.
+        <p className="mt-4 text-sm text-[#e2e8f0]/80 md:text-base">
+          One module to prove the pattern. All six to staff the team. A semester
+          license to run a program.
         </p>
       </header>
 
@@ -181,10 +188,47 @@ export default function PricingPage() {
         </div>
       </div>
 
-      <p className="mt-10 text-center text-[11px] text-[#64748b]">
-        All tiers include the Business Acumen Certificate. Stripe checkout
-        coming in v2. Talk to us: hello@realitydb.dev.
-      </p>
+      <div className="mt-16 border-t border-[#1e293b] pt-10">
+        <div className="mx-auto grid max-w-4xl grid-cols-1 gap-8 text-center text-sm md:grid-cols-3">
+          <div>
+            <div className="font-mono text-[11px] uppercase tracking-wider text-[#06d6a0]">
+              Signed credential
+            </div>
+            <p className="mt-2 text-[#e2e8f0]/80">
+              Every tier. Every learner. Public verification URL recruiters can
+              read in three seconds.
+            </p>
+          </div>
+          <div>
+            <div className="font-mono text-[11px] uppercase tracking-wider text-[#00f5d4]">
+              Real PostgreSQL
+            </div>
+            <p className="mt-2 text-[#e2e8f0]/80">
+              Six modules with enforced narratives at 97–99/100 quality. No
+              CSV. No sandbox tables. Real schemas.
+            </p>
+          </div>
+          <div>
+            <div className="font-mono text-[11px] uppercase tracking-wider text-[#a855f7]">
+              Claude-graded briefing
+            </div>
+            <p className="mt-2 text-[#e2e8f0]/80">
+              5-axis rubric including epistemic honesty. We grade judgement,
+              not row-set matches.
+            </p>
+          </div>
+        </div>
+        <p className="mt-10 text-center text-xs text-[#64748b]">
+          Pay by invoice, ACH, or wire today. Stripe self-checkout lands next.
+          Talk to us:{" "}
+          <a
+            href="mailto:hello@realitydb.dev"
+            className="text-[#06d6a0] hover:underline"
+          >
+            hello@realitydb.dev
+          </a>
+        </p>
+      </div>
     </div>
   );
 }

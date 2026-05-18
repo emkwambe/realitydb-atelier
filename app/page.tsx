@@ -69,17 +69,23 @@ export default function HomePage() {
   return (
     <div className="mx-auto max-w-[1280px] px-6 py-16 md:py-24">
       <section className="mx-auto max-w-3xl text-center">
-        <h1 className="text-4xl font-medium tracking-tight text-[#e2e8f0] md:text-6xl">
+        <div className="inline-flex items-center gap-2 border border-[#1e293b] bg-[#111827] px-3 py-1 font-mono text-[11px] uppercase tracking-wider text-[#64748b]">
+          <span className="inline-block size-1.5 rounded-full bg-[#06d6a0]" />
+          Six modules live · Live PostgreSQL in the browser · Claude-graded
+        </div>
+        <h1 className="mt-6 text-4xl font-medium tracking-tight text-[#e2e8f0] md:text-6xl">
           Don&apos;t read about the business.
           <br />
           <span className="text-[#00f5d4]">Interrogate its dynamics in data</span>
           <span className="text-[#a855f7]">.</span>
         </h1>
-        <p className="mt-6 text-base text-[#e2e8f0]/80 md:text-lg">
-          Six synthetic companies. Real PostgreSQL databases.
-          <br />
-          One CEO briefing that proves you understand the business —{" "}
-          <span className="text-[#e2e8f0]">not just the queries.</span>
+        <p className="mt-6 text-base text-[#e2e8f0] md:text-lg">
+          Six synthetic companies. Real PostgreSQL databases. One CEO briefing
+          that proves you understood the business —{" "}
+          <span className="text-[#00f5d4]">not just the queries</span>.
+        </p>
+        <p className="mt-3 text-sm text-[#64748b]">
+          The credential names the crisis you solved, not the course you finished.
         </p>
         <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
           <Link
@@ -175,26 +181,26 @@ export default function HomePage() {
           <PersonaCard
             accent="green"
             label="L&D & Analytics Leaders"
-            headline="Your analysts can read a dashboard. After this, they brief the CEO."
-            body="A 10-seat cohort takes 4–6 hours per learner and produces six graded briefings per analyst. Outcomes per dollar, not hours per dollar."
+            headline="Stop paying for course completions. Pay for graded briefings."
+            body="One ten-seat cohort. Four to six hours per learner. Six graded CEO briefings per analyst. The deliverable lives on a server your CFO can audit."
             ctaLabel="See team pricing"
             ctaHref="/pricing"
-            stat="$999.90 per learner at the 10-seat tier"
+            stat="$9,999 per cohort · under the $10K procurement threshold"
           />
           <PersonaCard
             accent="cyan"
             label="Compliance & Clinical Ops"
             headline="Investigation, not click-through."
-            body="ClearBank puts a buried structuring pattern in 18 months of synthetic transactions. OncoCare hides one underdosing trial site below the FDA threshold. Both are graded on epistemic honesty, not just accuracy."
-            ctaLabel="See compliance modules"
+            body="ClearBank buries a three-account structuring pattern in 18 months of synthetic transactions. OncoCare hides one underdosing trial site below the FDA threshold. Both grade epistemic honesty as hard as accuracy."
+            ctaLabel="Open ClearBank"
             ctaHref="/companies/clearbank"
-            stat="$15M+ FinCEN exposure embedded · OncoCare ORR drops 49.8% → 54.1% when SITE-07 is excluded"
+            stat="$15M FinCEN exposure embedded · OncoCare ORR shifts 49.8% → 54.1% when SITE-07 is excluded"
           />
           <PersonaCard
             accent="purple"
             label="MBA Programs"
-            headline="AACSB Digital Agility — not just a slide."
-            body="Six industry verticals. Unlimited students. Every credential names the specific crisis a graduate solved, with a public verification URL recruiters can read."
+            headline="What AACSB Digital Agility looks like when it isn't a slide."
+            body="Six industry verticals. Unlimited students. Every credential names the specific crisis the graduate solved, with a verification URL a recruiter can read in three seconds."
             ctaLabel="MBA semester license"
             ctaHref="/pricing"
             stat="$14,999 / semester · ≈ $250 per student in a 60-person cohort"
