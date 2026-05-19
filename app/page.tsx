@@ -71,7 +71,7 @@ export default function HomePage() {
       <section className="mx-auto max-w-3xl text-center">
         <div className="inline-flex items-center gap-2 border border-[#1e293b] bg-[#111827] px-3 py-1 font-mono text-[11px] uppercase tracking-wider text-[#64748b]">
           <span className="inline-block size-1.5 rounded-full bg-[#06d6a0]" />
-          Six modules live · Live PostgreSQL in the browser · Auto-graded and ranked
+          Six modules live · New module weekly · Auto-graded and ranked
         </div>
         <h1 className="mt-6 text-4xl font-medium tracking-tight text-[#e2e8f0] md:text-6xl">
           Don&apos;t read about the business.
@@ -80,8 +80,8 @@ export default function HomePage() {
           <span className="text-[#a855f7]">.</span>
         </h1>
         <p className="mt-6 text-base text-[#e2e8f0] md:text-lg">
-          Six synthetic companies. Real PostgreSQL databases. One CEO briefing
-          that proves you understood the business —{" "}
+          A growing catalog of synthetic companies in real PostgreSQL. One CEO
+          briefing that proves you understood the business —{" "}
           <span className="text-[#00f5d4]">not just the queries</span>.
         </p>
         <p className="mt-3 text-sm text-[#64748b]">

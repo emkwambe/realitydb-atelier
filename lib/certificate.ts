@@ -88,7 +88,7 @@ function bufToHex(buf: ArrayBuffer): string {
 export function linkedInShareUrl(cert: BizCertificate, baseUrl: string): string {
   const verifyUrl = `${baseUrl.replace(/\/$/, "")}/verify/${cert.certId}`;
   const params = new URLSearchParams({
-    name: `RealityDB Atelier — ${cert.companyLabel} Business Acumen`,
+    name: `RealityDb Atelier — ${cert.companyLabel} Business Acumen`,
     organizationName: "Mpingo Systems LLC",
     issueYear: String(new Date(cert.issuedAt).getUTCFullYear()),
     issueMonth: String(new Date(cert.issuedAt).getUTCMonth() + 1),

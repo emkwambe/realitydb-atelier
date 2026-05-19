@@ -5,6 +5,7 @@ type Accent = "green" | "cyan" | "purple";
 
 interface Tier {
   name: string;
+  persona: string;
   price: string;
   cadence: string;
   description: string;
@@ -12,6 +13,7 @@ interface Tier {
   ctaLabel: string;
   ctaHref: string;
   ctaIsContact: boolean;
+  ctaNote?: string;
   accent: Accent;
   highlighted?: boolean;
 }
@@ -25,67 +27,73 @@ const ACCENT_HEX: Record<Accent, string> = {
 const LEARNER_TIERS: Tier[] = [
   {
     name: "Module",
+    persona: "For one learner",
     price: "$499",
     cadence: "one-time",
-    description: "One company, lifetime access. The full deliverable.",
+    description: "Pick one company. Lifetime access to that module.",
     features: [
       "10 exercises + CEO briefing",
       "PGlite in-browser PostgreSQL",
-      "Auto-graded briefing on a 5-axis rubric · feeds your rank",
-      "Verifiable Business Acumen Certificate",
+      "Auto-graded briefing · feeds your rank",
+      "Signed Business Acumen Certificate",
     ],
-    ctaLabel: "Start NovaPay",
+    ctaLabel: "Try NovaPay free",
     ctaHref: "/companies/novapay",
     ctaIsContact: false,
     accent: "green",
   },
   {
     name: "All-Access",
+    persona: "For career builders",
     price: "$1,499",
     cadence: "one-time",
-    description: "All six companies as they ship.",
+    description:
+      "Every module — current and future. New module added at least weekly.",
     features: [
-      "Every module (NovaPay → OncoCare)",
-      "Lifetime updates",
-      "Six certificates",
+      "All current + future modules",
+      "Lifetime updates · new module ≥ weekly",
+      "One signed credential per module solved",
       "Priority email support",
     ],
-    ctaLabel: "Get all-access",
-    ctaHref: "/auth/signup",
+    ctaLabel: "Create account",
+    ctaHref: "/auth/signup?plan=all-access",
     ctaIsContact: false,
     accent: "green",
     highlighted: true,
   },
   {
     name: "Team",
+    persona: "For L&D · cohort leads",
     price: "$9,999",
     cadence: "10 seats · 1 year",
-    description: "One company, team training. Cohort progress dashboard.",
+    description: "One module, team training. Cohort progress dashboard.",
     features: [
-      "10 student seats",
+      "10 student seats · admin invites",
       "Cohort progress dashboard",
-      "Admin invites & deadlines",
+      "Deadlines + nudges",
       "Cohort report at end of term",
     ],
-    ctaLabel: "Contact us",
-    ctaHref: "mailto:hello@realitydb.dev?subject=Atelier Team",
-    ctaIsContact: true,
+    ctaLabel: "Create team account",
+    ctaHref: "/auth/signup?plan=team",
+    ctaIsContact: false,
     accent: "green",
   },
   {
     name: "MBA License",
+    persona: "For MBA programs",
     price: "$14,999",
     cadence: "per semester",
-    description: "All companies, unlimited students, program-wide.",
+    description:
+      "All current and future modules, unlimited students, program-wide.",
     features: [
-      "All six modules",
+      "All current + future modules",
       "Unlimited student seats",
       "Instructor dashboard",
       "LMS integration available",
     ],
-    ctaLabel: "Contact us",
-    ctaHref: "mailto:hello@realitydb.dev?subject=Atelier MBA License",
-    ctaIsContact: true,
+    ctaLabel: "Create program account",
+    ctaHref: "/auth/signup?plan=mba",
+    ctaIsContact: false,
     accent: "green",
   },
 ];
@@ -93,25 +101,27 @@ const LEARNER_TIERS: Tier[] = [
 const INSTRUCTOR_TIERS: Tier[] = [
   {
     name: "Instructor Solo",
+    persona: "For solo instructors",
     price: "$299",
     cadence: "per month",
-    description: "For one instructor running a small cohort.",
+    description: "One instructor, small cohort, full module catalog.",
     features: [
       "Up to 3 cohorts · 30 students",
-      "All six modules",
+      "All current + future modules",
       "Custom questions (5 per module)",
       "CSV export",
     ],
     ctaLabel: "Start solo",
-    ctaHref: "mailto:hello@realitydb.dev?subject=Atelier Instructor Solo",
-    ctaIsContact: true,
+    ctaHref: "/auth/signup?plan=instructor-solo",
+    ctaIsContact: false,
     accent: "cyan",
   },
   {
     name: "Instructor Pro",
+    persona: "For program leads",
     price: "$799",
     cadence: "per month",
-    description: "For program leads running multiple cohorts.",
+    description: "Multiple cohorts, unlimited students, no question limits.",
     features: [
       "Unlimited cohorts & students",
       "Unlimited custom questions",
@@ -119,25 +129,28 @@ const INSTRUCTOR_TIERS: Tier[] = [
       "Priority grading · class-discussion view",
     ],
     ctaLabel: "Start pro",
-    ctaHref: "mailto:hello@realitydb.dev?subject=Atelier Instructor Pro",
-    ctaIsContact: true,
+    ctaHref: "/auth/signup?plan=instructor-pro",
+    ctaIsContact: false,
     accent: "cyan",
     highlighted: true,
   },
   {
-    name: "Enterprise / MBA",
+    name: "Enterprise",
+    persona: "For institutions · F500",
     price: "$2,500",
     cadence: "per month",
-    description: "For institutions and Fortune 500 L&D — SSO, LMS, SLA.",
+    description: "SSO, LMS, dedicated onboarding, contract terms.",
     features: [
       "All Instructor Pro features",
       "SSO · LMS export (Canvas, Blackboard, Moodle)",
       "Dedicated onboarding · custom branding",
       "99.9% uptime SLA",
     ],
-    ctaLabel: "Talk to sales",
+    ctaLabel: "Book a scoping call",
     ctaHref: "mailto:hello@realitydb.dev?subject=Atelier Enterprise",
     ctaIsContact: true,
+    ctaNote:
+      "SSO setup, LMS integration spec, and contract terms need a short call. No pitch deck.",
     accent: "purple",
   },
 ];
@@ -157,8 +170,9 @@ export default function PricingPage() {
           <span className="text-[#00f5d4]">The audience is the price.</span>
         </h1>
         <p className="mt-4 text-sm text-[#e2e8f0]/80 md:text-base">
-          One module to prove the pattern. All six to staff the team. A semester
-          license to run a program.
+          Six modules live. New module added at least weekly. Create an account
+          to start any tier — no sales call needed unless you need SSO or a
+          contract.
         </p>
       </header>
 
@@ -166,7 +180,7 @@ export default function PricingPage() {
         <SectionHeading
           accent="green"
           label="For learners and teams"
-          subhead="Self-serve, lifetime access on modules · cohort dashboard on Team."
+          subhead="Self-serve account · lifetime access on modules · cohort dashboard on Team."
         />
         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           {LEARNER_TIERS.map((t) => (
@@ -179,7 +193,7 @@ export default function PricingPage() {
         <SectionHeading
           accent="cyan"
           label="For instructors and programs"
-          subhead="Custom questions, cohort grading, exports. SSO and LMS at the Enterprise tier."
+          subhead="Self-serve subscriptions · custom questions · cohort grading. SSO + LMS at Enterprise."
         />
         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
           {INSTRUCTOR_TIERS.map((t) => (
@@ -201,11 +215,11 @@ export default function PricingPage() {
           </div>
           <div>
             <div className="font-mono text-[11px] uppercase tracking-wider text-[#00f5d4]">
-              Real PostgreSQL
+              Real PostgreSQL · weekly drop
             </div>
             <p className="mt-2 text-[#e2e8f0]/80">
-              Six modules with enforced narratives at 97–99/100 quality. No
-              CSV. No sandbox tables. Real schemas.
+              Six modules live with enforced narratives at 97–99/100 quality.
+              New module added at least every week.
             </p>
           </div>
           <div>
@@ -219,8 +233,8 @@ export default function PricingPage() {
           </div>
         </div>
         <p className="mt-10 text-center text-xs text-[#64748b]">
-          Pay by invoice, ACH, or wire today. Stripe self-checkout lands next.
-          Talk to us:{" "}
+          Create an account in 30 seconds. Stripe self-checkout lands next; pay
+          by invoice, ACH, or wire in the meantime.{" "}
           <a
             href="mailto:hello@realitydb.dev"
             className="text-[#06d6a0] hover:underline"
@@ -265,15 +279,22 @@ function TierCard({ tier }: { tier: Tier }) {
       style={{
         borderColor: highlighted ? `${accentColor}80` : "#1e293b",
         backgroundColor: highlighted ? `${accentColor}0d` : "#111827",
+        borderTop: highlighted ? undefined : `2px solid ${accentColor}66`,
       }}
     >
+      <div
+        className="font-mono text-[10px] uppercase tracking-wider"
+        style={{ color: accentColor }}
+      >
+        {tier.persona}
+      </div>
       <h2
-        className="text-sm font-medium uppercase tracking-wider"
-        style={{ color: highlighted ? accentColor : "#64748b" }}
+        className="mt-1 text-sm font-medium uppercase tracking-wider"
+        style={{ color: highlighted ? accentColor : "#e2e8f0" }}
       >
         {tier.name}
       </h2>
-      <div className="mt-3 flex items-baseline gap-2">
+      <div className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1">
         <span className="text-3xl font-medium text-[#e2e8f0]">{tier.price}</span>
         <span className="text-xs text-[#64748b]">{tier.cadence}</span>
       </div>
@@ -292,6 +313,11 @@ function TierCard({ tier }: { tier: Tier }) {
       </ul>
 
       <CtaButton tier={tier} accentColor={accentColor} />
+      {tier.ctaNote && (
+        <p className="mt-2 text-[10px] leading-snug text-[#64748b]">
+          {tier.ctaNote}
+        </p>
+      )}
     </div>
   );
 }
@@ -307,6 +333,10 @@ function CtaButton({
     backgroundColor: accentColor,
     color: "#0a0f1a",
   };
+  const purpleOutlineStyle: React.CSSProperties = {
+    borderColor: `${accentColor}99`,
+    color: accentColor,
+  };
   const outlineStyle: React.CSSProperties = {
     borderColor: "#1e293b",
     color: "#e2e8f0",
@@ -314,7 +344,13 @@ function CtaButton({
   const className = tier.highlighted
     ? "mt-6 block w-full px-4 py-2 text-center text-sm font-medium transition hover:opacity-90"
     : "mt-6 block w-full border px-4 py-2 text-center text-sm transition hover:opacity-80";
-  const style = tier.highlighted ? filledStyle : outlineStyle;
+  // Enterprise CTA carries the accent outline even when not highlighted,
+  // because purple identifies this card and a neutral CTA undersells it.
+  const style = tier.highlighted
+    ? filledStyle
+    : tier.accent === "purple"
+      ? purpleOutlineStyle
+      : outlineStyle;
 
   if (tier.ctaIsContact) {
     return (

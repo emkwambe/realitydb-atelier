@@ -17,7 +17,7 @@ export default function VerifyPage({ params }: { params: { certId: string } }) {
         <VerifyClient certId={params.certId} />
 
         <div className="mt-10 border-t border-[#1e293b] pt-4 text-xs text-[#64748b]">
-          Issued by RealityDB Atelier · Mpingo Systems LLC
+          Issued by RealityDb Atelier · Mpingo Systems LLC
         </div>
       </div>
     </div>

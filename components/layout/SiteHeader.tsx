@@ -59,7 +59,7 @@ export function SiteHeader() {
           href="/"
           className="font-mono text-[15px] tracking-tight hover:opacity-90"
         >
-          <span className="text-[#06d6a0]">RealityDB</span>
+          <span className="text-[#06d6a0]">RealityDb</span>{" "}
           <span className="text-[#00f5d4]">Atelier</span>
         </Link>
         <nav className="flex items-center gap-6 text-sm text-[#e2e8f0]/80">

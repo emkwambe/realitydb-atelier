@@ -18,9 +18,9 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "RealityDB Atelier — The business school that runs on live data",
+  title: "RealityDb Atelier — The business school that runs on live data",
   description:
-    "Six synthetic companies. Real PostgreSQL databases. One CEO briefing — auto-graded and ranked.",
+    "Live synthetic companies. Real PostgreSQL databases. One CEO briefing — auto-graded and ranked.",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || "https://atelier.realitydb.dev"
   ),
@@ -56,7 +56,7 @@ function SiteFooter() {
   return (
     <footer className="border-t border-[#1e293b] bg-[#0a0f1a]">
       <div className="mx-auto max-w-[1280px] px-6 py-8 text-center text-xs text-[#64748b]">
-        Powered by <span className="text-[#06d6a0]">RealityDB</span> ·{" "}
+        Powered by <span className="text-[#06d6a0]">RealityDb</span> ·{" "}
         <span className="text-[#00f5d4]">Mpingo Systems LLC</span> · Charlotte, NC
       </div>
     </footer>
