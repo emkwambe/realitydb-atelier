@@ -470,6 +470,43 @@ This anonymous-first pattern is a Brief-specific accommodation. It is
 *not* used on Modules, which always require an account before the
 workbench loads.
 
+### 11.3 Module paywall — per exercise, not per module
+
+The Module paywall (Phase 2 of Stripe wiring, see
+`docs/plans/04-stripe-wiring.md`) operates **at exercise
+granularity**. Every Module has its 10 exercises tagged with one of
+three difficulty levels — `beginner`, `intermediate`, `advanced` —
+already shipping in `lib/grading.ts`. The gating rule is:
+
+| Exercise difficulty | Anonymous | Signed-in, no sub | Subscribed |
+|---|---|---|---|
+| `beginner` | redirect to signup | ✅ free | ✅ |
+| `intermediate` | redirect to signup | 🔒 → /pricing | ✅ |
+| `advanced` | redirect to signup | 🔒 → /pricing | ✅ |
+| CEO briefing | redirect to signup | 🔒 → /pricing | ✅ |
+| Signed certificate | n/a | 🔒 | ✅ |
+
+NovaPay's distribution is 2 beginner / 4 intermediate / 4 advanced.
+Other modules carry similar shapes. The two beginners across every
+module become the free preview a signed-in account receives.
+
+Why per-exercise instead of per-module:
+
+- A "first 3 free, last 7 paid" gate would be a structural decision
+  imposed on every module. The beginner/intermediate/advanced
+  difficulty tagging already exists per exercise and reflects
+  actual pedagogy — beginners teach generic SQL skills, intermediate
+  starts the investigation, advanced closes on the crisis.
+- The free preview thus surfaces *only* the parts of each module
+  that teach generic skill, never the parts that teach the hidden
+  pattern. That is the cut that survives the "NovaPay alone is
+  enough" objection. (See `docs/plans/04-stripe-wiring.md` "Why no
+  full-module free trials" for the longer argument.)
+
+This rule applies *only* to Modules. Briefs do not have difficulty
+tagging — every Brief is one focused pattern, free forever, no
+internal paywall.
+
 ---
 
 ## 12. Storage schemas (Supabase additions)

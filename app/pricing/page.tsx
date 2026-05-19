@@ -34,9 +34,9 @@ const LEARNER_TIERS: Tier[] = [
     altPrice: "or $49/month",
     description: "Pick one company. Subscribe monthly or save with annual.",
     features: [
-      "10 exercises + CEO briefing",
+      "2 beginner exercises free · 8 paid",
+      "CEO briefing · auto-graded · feeds your rank",
       "PGlite in-browser PostgreSQL",
-      "Auto-graded briefing · feeds your rank",
       "Signed Business Acumen Certificate",
     ],
     ctaLabel: "Subscribe to NovaPay",
@@ -53,7 +53,7 @@ const LEARNER_TIERS: Tier[] = [
     description:
       "Every module — current and future. New module added at least weekly.",
     features: [
-      "All current + future modules",
+      "Beginner exercises free across every module · all the rest unlocked",
       "Continuous updates · new module ≥ weekly",
       "One signed credential per module solved",
       "Priority email support",
@@ -183,7 +183,7 @@ export default function PricingPage() {
         <SectionHeading
           accent="green"
           label="For learners and teams"
-          subhead="Monthly or annual · cancel anytime · cohort dashboard on Team."
+          subhead="Create an account to try the 2 beginner exercises free in every module. Subscribe to continue."
         />
         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           {LEARNER_TIERS.map((t) => (

@@ -47,19 +47,54 @@ honour system covers the gap until Phase 2.
 
 ### Phase 2 — Gate (future, after first ~50 paying users)
 
-- `lib/entitlements.ts` exposes `canAccess(userId, module)` checks.
-- `/companies/<slug>` routes call the check and redirect non-paying
-  users to `/pricing`.
-- **No free preview exercises.** Originally we proposed first 3
-  exercises free per module; that was rolled back when it became
-  clear NovaPay alone covers nearly all the SaaS-domain content a
-  buyer needs. Giving away 3 of 10 exercises is giving away the
-  pattern itself. The free funnel is Briefs only.
+- `lib/entitlements.ts` exposes `canAccess(userId, module, exercise)`
+  checks. The signature carries `exercise` because the gate operates
+  at exercise granularity, not module granularity (see below).
+- `/companies/<slug>` lands without any gate — schema explorer and
+  beginner-tier exercises are open to any authenticated user.
+- `/companies/<slug>/exercise/[n]` calls `canAccess` per exercise.
+  If the exercise is `intermediate` or `advanced` and the user is
+  not subscribed to that module (or All-Access), they are redirected
+  to a `/pricing#module-<slug>` anchor with a small in-context
+  "Subscribe to continue" prompt.
+- `/companies/<slug>/briefing` requires subscription. The CEO
+  briefing is the deliverable; no free preview.
 - Briefs stay free forever (per data-split contract §11).
 - Driven by an `ENABLE_PAYWALL=true` env flag so the gate can be
   rolled out gradually.
 
-### Strategy note: no free Module trials
+### The free-preview policy (codified)
+
+The free preview is **the two beginner exercises in every module**,
+unlocked once a user creates a free account. Specifically:
+
+| Exercise difficulty | After signup (no subscription) | After subscription |
+|---|---|---|
+| `beginner` | ✅ free | ✅ |
+| `intermediate` | 🔒 paywall → /pricing | ✅ |
+| `advanced` | 🔒 paywall → /pricing | ✅ |
+| CEO briefing | 🔒 paywall → /pricing | ✅ |
+| Signed certificate | 🔒 paywall → /pricing | ✅ |
+
+Why this cut survives scrutiny:
+
+- **The beginners teach generic SQL** — counts, segments,
+  percentages, basic joins. They are not the platform's
+  differentiator; any SQL tutorial covers that material. They
+  prove the workbench works and the data is real without giving
+  away the pattern discovery that the intermediate and advanced
+  exercises lead the learner through.
+- **The pattern discovery starts at exercise 3.** In NovaPay,
+  exercise 3 is "Is churn getting better or worse?" — the first
+  cohort question. The investigation rhythm starts there. The
+  hidden currency-mix story crystallises in exercises 8–10.
+  Giving away exercises 1–2 gives away nothing of the crisis.
+- **The CEO briefing is the credential.** Even a learner who
+  completes every paid exercise still has to write the briefing
+  to earn the signed certificate. Briefing-grading is the
+  deliverable that pricing pays for, end of story.
+
+### Why no full-module free trials
 
 The original plan had NovaPay positioned as a free trial. We rolled
 that back. NovaPay alone is 10 exercises plus a graded briefing
@@ -67,10 +102,12 @@ covering FinTech-SaaS retention, cohort analysis, churn investigation,
 and ARR math. For a SaaS analyst, that is essentially the entire
 domain — there is nothing left to pay for. Same logic applies to
 ClearBank (AML), OncoCare (clinical trials), and every other module:
-each module is comprehensive enough for its domain that even a free
-preview cannibalises paid conversion.
+each module is comprehensive enough for its domain that even a
+3-of-10 free preview cannibalises paid conversion. The 2-of-10
+free-beginner cut survives because the beginners are
+domain-agnostic SQL drills, not domain-specific investigation.
 
-The free funnel is therefore **Weekly Briefs**, not Module previews.
+The broader free funnel is **Weekly Briefs**, not Module previews.
 Briefs are cross-domain, single-pattern, much smaller per-piece, and
 their purpose is to demonstrate the engine and capture emails — not
 to teach a buyer everything they need to know about a vertical.
