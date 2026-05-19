@@ -35,33 +35,62 @@ What this is NOT:
 - Stripe Checkout works for all six self-serve tiers.
 - Successful payments land in `purchases` and `subscriptions` tables.
 - Customers can manage their own billing via Stripe Customer Portal.
-- Modules **remain unlocked** for any authenticated user. Phase 1 is
-  about capturing payments; gating comes later.
+- Modules **remain technically unlocked** for any authenticated user
+  in Phase 1. Phase 1 is about capturing payments; the in-code gate
+  comes in Phase 2.
 
 Rationale: the funnel is fragile. If we gate before we have organic
 demand, every accidental block kills a future customer. We *record*
-who has paid; we keep the experience generous. When the funnel is
-healthy enough that ungrateful free access is a real revenue leak,
-we flip to Phase 2.
+who has paid; we keep the experience generous in code. The marketing
+copy (every CTA says "Subscribe to") sets the expectation; the
+honour system covers the gap until Phase 2.
 
 ### Phase 2 — Gate (future, after first ~50 paying users)
 
 - `lib/entitlements.ts` exposes `canAccess(userId, module)` checks.
 - `/companies/<slug>` routes call the check and redirect non-paying
-  users to `/companies/<slug>/preview` (first 3 exercises free) or
-  `/pricing`.
+  users to `/pricing`.
+- **No free preview exercises.** Originally we proposed first 3
+  exercises free per module; that was rolled back when it became
+  clear NovaPay alone covers nearly all the SaaS-domain content a
+  buyer needs. Giving away 3 of 10 exercises is giving away the
+  pattern itself. The free funnel is Briefs only.
 - Briefs stay free forever (per data-split contract §11).
 - Driven by an `ENABLE_PAYWALL=true` env flag so the gate can be
   rolled out gradually.
+
+### Strategy note: no free Module trials
+
+The original plan had NovaPay positioned as a free trial. We rolled
+that back. NovaPay alone is 10 exercises plus a graded briefing
+covering FinTech-SaaS retention, cohort analysis, churn investigation,
+and ARR math. For a SaaS analyst, that is essentially the entire
+domain — there is nothing left to pay for. Same logic applies to
+ClearBank (AML), OncoCare (clinical trials), and every other module:
+each module is comprehensive enough for its domain that even a free
+preview cannibalises paid conversion.
+
+The free funnel is therefore **Weekly Briefs**, not Module previews.
+Briefs are cross-domain, single-pattern, much smaller per-piece, and
+their purpose is to demonstrate the engine and capture emails — not
+to teach a buyer everything they need to know about a vertical.
+A learner who solves Brief 001 (Cohort Collapse) gets one pattern;
+a learner who buys NovaPay gets the company.
 
 ---
 
 ## 3. The seven tiers in Stripe terms
 
+Every tier is a subscription. There are no one-time prices. Buyers
+choose monthly or annual at checkout; annual is the default and saves
+roughly 17% vs paying monthly. Subscriptions can be cancelled
+anytime via the Customer Portal; on cancel, access continues to the
+end of the period.
+
 | Tier | Stripe mode | Notes |
 |---|---|---|
-| Module | `payment` (one-time) | One Stripe Product per company (NovaPay, MedCore, …). Each carries one Price at $499. Six Prices total, one per module. |
-| All-Access | `payment` (one-time) | One Product, one Price at $1,499. Grants entitlement to every Module Product. |
+| Module | `subscription` monthly OR annual | One Stripe Product per company (NovaPay, MedCore, …). Each Product carries TWO Prices — one at $49/month, one at $499/year. Twelve Prices total, two per module. |
+| All-Access | `subscription` monthly OR annual | One Product with two Prices — $149/month and $1,499/year. Grants entitlement to every Module Product. |
 | Team | `subscription` annual | One Product, one Price at $9,999/year. The "10 seats" is a metadata constraint we enforce in Supabase, not a Stripe quantity. |
 | MBA License | `subscription` biannual | One Product, one Price at $14,999 / 6 months (the closest Stripe cadence to "semester"). Auto-renew off by default. |
 | Instructor Solo | `subscription` monthly | $299/mo. Cancel anytime. |
@@ -74,19 +103,36 @@ Create these in the Stripe dashboard (not in code) before any
 implementation:
 
 ```
-PRODUCT: Atelier Module — NovaPay        PRICE: price_module_novapay      $499 one-time
-PRODUCT: Atelier Module — MedCore        PRICE: price_module_medcore      $499 one-time
-PRODUCT: Atelier Module — SupplyLink     PRICE: price_module_supplylink   $499 one-time
-PRODUCT: Atelier Module — TowerNet       PRICE: price_module_towernet     $499 one-time
-PRODUCT: Atelier Module — ClearBank      PRICE: price_module_clearbank    $499 one-time
-PRODUCT: Atelier Module — OncoCare       PRICE: price_module_oncocare     $499 one-time
+PRODUCT: Atelier Module — NovaPay
+  PRICE: price_module_novapay_monthly      $49  / month
+  PRICE: price_module_novapay_yearly       $499 / year
 
-PRODUCT: Atelier All-Access              PRICE: price_all_access          $1,499 one-time
-PRODUCT: Atelier Team (10 seats / 1 yr)  PRICE: price_team                $9,999 / year
-PRODUCT: Atelier MBA License             PRICE: price_mba                 $14,999 / 6 months
-PRODUCT: Atelier Instructor Solo         PRICE: price_instructor_solo     $299 / month
-PRODUCT: Atelier Instructor Pro          PRICE: price_instructor_pro      $799 / month
+PRODUCT: Atelier Module — MedCore          (same shape, two Prices)
+PRODUCT: Atelier Module — SupplyLink       (same shape, two Prices)
+PRODUCT: Atelier Module — TowerNet         (same shape, two Prices)
+PRODUCT: Atelier Module — ClearBank        (same shape, two Prices)
+PRODUCT: Atelier Module — OncoCare         (same shape, two Prices)
+
+PRODUCT: Atelier All-Access
+  PRICE: price_all_access_monthly          $149  / month
+  PRICE: price_all_access_yearly           $1,499 / year
+
+PRODUCT: Atelier Team (10 seats / 1 yr)
+  PRICE: price_team                        $9,999 / year
+
+PRODUCT: Atelier MBA License
+  PRICE: price_mba                         $14,999 / 6 months (auto-renew off)
+
+PRODUCT: Atelier Instructor Solo
+  PRICE: price_instructor_solo             $299 / month
+
+PRODUCT: Atelier Instructor Pro
+  PRICE: price_instructor_pro              $799 / month
 ```
+
+Total: 19 Prices across 11 Products (six Module Products × 2 Prices,
+All-Access × 2, Team × 1, MBA × 1, Instructor Solo × 1, Instructor
+Pro × 1).
 
 The Stripe Price IDs are referenced in our code by *name only*, never
 hard-coded. They live in `STRIPE_PRICE_<KEY>` env vars so they can be

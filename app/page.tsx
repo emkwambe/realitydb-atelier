@@ -89,23 +89,23 @@ export default function HomePage() {
         </p>
         <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
           <Link
-            href="/companies/novapay"
+            href="/pricing"
             className="inline-flex items-center gap-2 bg-[#06d6a0] px-5 py-3 text-sm font-medium text-[#0a0f1a] transition hover:bg-[#06d6a0]/90"
           >
-            Start with NovaPay
+            Subscribe to All-Access
             <ArrowRight className="size-4" />
           </Link>
           <Link
-            href="#built-for"
-            className="inline-flex items-center gap-2 border border-[#a855f7]/60 px-5 py-3 text-sm font-medium text-[#a855f7] transition hover:bg-[#a855f7]/10"
+            href="/briefs"
+            className="inline-flex items-center gap-2 border border-[#00f5d4]/60 px-5 py-3 text-sm font-medium text-[#00f5d4] transition hover:bg-[#00f5d4]/10"
           >
-            Built for your team
+            Try a free Brief
           </Link>
           <Link
-            href="/pricing"
+            href="#built-for"
             className="text-sm text-[#64748b] hover:text-[#e2e8f0]"
           >
-            View pricing →
+            Built for your team →
           </Link>
         </div>
       </section>

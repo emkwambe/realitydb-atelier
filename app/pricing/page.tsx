@@ -8,6 +8,7 @@ interface Tier {
   persona: string;
   price: string;
   cadence: string;
+  altPrice?: string;
   description: string;
   features: string[];
   ctaLabel: string;
@@ -29,16 +30,17 @@ const LEARNER_TIERS: Tier[] = [
     name: "Module",
     persona: "For one learner",
     price: "$499",
-    cadence: "one-time",
-    description: "Pick one company. Lifetime access to that module.",
+    cadence: "per year",
+    altPrice: "or $49/month",
+    description: "Pick one company. Subscribe monthly or save with annual.",
     features: [
       "10 exercises + CEO briefing",
       "PGlite in-browser PostgreSQL",
       "Auto-graded briefing · feeds your rank",
       "Signed Business Acumen Certificate",
     ],
-    ctaLabel: "Try NovaPay free",
-    ctaHref: "/companies/novapay",
+    ctaLabel: "Subscribe to NovaPay",
+    ctaHref: "/auth/signup?plan=module-novapay",
     ctaIsContact: false,
     accent: "green",
   },
@@ -46,12 +48,13 @@ const LEARNER_TIERS: Tier[] = [
     name: "All-Access",
     persona: "For career builders",
     price: "$1,499",
-    cadence: "one-time",
+    cadence: "per year",
+    altPrice: "or $149/month",
     description:
       "Every module — current and future. New module added at least weekly.",
     features: [
       "All current + future modules",
-      "Lifetime updates · new module ≥ weekly",
+      "Continuous updates · new module ≥ weekly",
       "One signed credential per module solved",
       "Priority email support",
     ],
@@ -65,7 +68,7 @@ const LEARNER_TIERS: Tier[] = [
     name: "Team",
     persona: "For L&D · cohort leads",
     price: "$9,999",
-    cadence: "10 seats · 1 year",
+    cadence: "per year · 10 seats",
     description: "One module, team training. Cohort progress dashboard.",
     features: [
       "10 student seats · admin invites",
@@ -180,7 +183,7 @@ export default function PricingPage() {
         <SectionHeading
           accent="green"
           label="For learners and teams"
-          subhead="Self-serve account · lifetime access on modules · cohort dashboard on Team."
+          subhead="Monthly or annual · cancel anytime · cohort dashboard on Team."
         />
         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           {LEARNER_TIERS.map((t) => (
@@ -298,6 +301,9 @@ function TierCard({ tier }: { tier: Tier }) {
         <span className="text-3xl font-medium text-[#e2e8f0]">{tier.price}</span>
         <span className="text-xs text-[#64748b]">{tier.cadence}</span>
       </div>
+      {tier.altPrice && (
+        <div className="mt-1 text-xs text-[#64748b]">{tier.altPrice}</div>
+      )}
       <p className="mt-2 text-xs text-[#64748b]">{tier.description}</p>
 
       <ul className="mt-5 flex-1 space-y-2 text-sm text-[#e2e8f0]/80">
