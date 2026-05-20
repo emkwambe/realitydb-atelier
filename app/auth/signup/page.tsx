@@ -27,7 +27,18 @@ const ACCOUNT_TYPES: { value: AccountType; label: string; description: string }[
 
 function SignupInner() {
   const params = useSearchParams();
-  const next = params.get("next") || "/companies/novapay";
+  // If signup was reached from a pricing CTA (e.g. /pricing → /checkout/start
+  // bounces here when not signed in), preserve plan + billing through the
+  // verification round-trip. The auth callback reads `next` and lands the
+  // user on /checkout/start once their email is confirmed.
+  const planParam = params.get("plan");
+  const billingParam = params.get("billing");
+  const explicitNext = params.get("next");
+  const next = explicitNext
+    ? explicitNext
+    : planParam
+      ? `/checkout/start?plan=${encodeURIComponent(planParam)}${billingParam ? `&billing=${encodeURIComponent(billingParam)}` : ""}`
+      : "/companies/novapay";
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -82,7 +93,9 @@ function SignupInner() {
     // proxy would bounce us to /auth/login. The user must confirm email first.
     void data;
     setMessage(
-      `Check your inbox at ${email} for a verification link. Click it to activate your account.`
+      planParam
+        ? `Check your inbox at ${email} for a verification link. After you confirm, we'll send you to Stripe Checkout for the ${planParam} plan.`
+        : `Check your inbox at ${email} for a verification link. Click it to activate your account.`
     );
   }
 

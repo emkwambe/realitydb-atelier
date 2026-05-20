@@ -71,7 +71,7 @@ export default function HomePage() {
       <section className="mx-auto max-w-3xl text-center">
         <div className="inline-flex items-center gap-2 border border-[#1e293b] bg-[#111827] px-3 py-1 font-mono text-[11px] uppercase tracking-wider text-[#64748b]">
           <span className="inline-block size-1.5 rounded-full bg-[#06d6a0]" />
-          Six modules live · New module weekly · Auto-graded and ranked
+          Five production modules · Hot Cases every Monday · Auto-graded
         </div>
         <h1 className="mt-6 text-4xl font-medium tracking-tight text-[#e2e8f0] md:text-6xl">
           Don&apos;t read about the business.
@@ -83,6 +83,11 @@ export default function HomePage() {
           A growing catalog of synthetic companies in real PostgreSQL. One CEO
           briefing that proves you understood the business —{" "}
           <span className="text-[#00f5d4]">not just the queries</span>.
+        </p>
+        <p className="mt-3 text-sm text-[#e2e8f0]/80">
+          Atelier develops business acumen.{" "}
+          <span className="text-[#00f5d4]">Data is the medium.</span>{" "}
+          <span className="text-[#06d6a0]">The briefing is the proof.</span>
         </p>
         <p className="mt-3 text-sm text-[#64748b]">
           The credential names the crisis you solved, not the course you finished.
@@ -96,10 +101,10 @@ export default function HomePage() {
             <ArrowRight className="size-4" />
           </Link>
           <Link
-            href="/briefs"
+            href="/hot-cases"
             className="inline-flex items-center gap-2 border border-[#00f5d4]/60 px-5 py-3 text-sm font-medium text-[#00f5d4] transition hover:bg-[#00f5d4]/10"
           >
-            Try a free Brief
+            Try a free Hot Case
           </Link>
           <Link
             href="#built-for"
@@ -149,11 +154,11 @@ export default function HomePage() {
             sourceLabel="ABA Banking Journal · 2024"
           />
           <ProofStat
-            figure="11%"
+            figure="70%"
             accent="cyan"
-            caption="of employees feel fully confident working with data, even though 85% of executives call it critical."
-            sourceUrl="https://www.datacamp.com/blog/introducing-the-state-of-data-and-ai-literacy-report-2025"
-            sourceLabel="DataCamp State of Data & AI Literacy · 2025"
+            caption="of employees rarely or never have access to critical business information — even when it determines their next decision."
+            sourceUrl="https://www.harvardbusiness.org/insight/closing-the-information-access-gap/"
+            sourceLabel="Harvard Business Publishing"
           />
           <ProofStat
             figure="48%"
@@ -180,7 +185,7 @@ export default function HomePage() {
         <div className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3">
           <PersonaCard
             accent="green"
-            label="L&D & Analytics Leaders"
+            label="For organizations investing in their workforce"
             headline="Stop paying for course completions. Pay for graded briefings."
             body="One ten-seat cohort. Four to six hours per learner. Six graded CEO briefings per analyst. The deliverable lives on a server your CFO can audit."
             ctaLabel="See team pricing"
@@ -198,7 +203,7 @@ export default function HomePage() {
           />
           <PersonaCard
             accent="purple"
-            label="MBA Programs"
+            label="For institutions investing in student outcomes"
             headline="What AACSB Digital Agility looks like when it isn't a slide."
             body="Six industry verticals. Unlimited students. Every credential names the specific crisis the graduate solved, with a verification URL a recruiter can read in three seconds."
             ctaLabel="MBA semester license"
