@@ -1,12 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, FileText, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, FileText, Loader2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SqlEditor } from "@/components/exercise/SqlEditor";
 import { ResultsTable } from "@/components/exercise/ResultsTable";
 import { SchemaExplorer } from "@/components/exercise/SchemaExplorer";
+import { BriefingScaffold } from "@/components/exercise/BriefingScaffold";
+import {
+  ReferenceAnswerPanel,
+  type SubmittedAnswer,
+} from "@/components/exercise/ReferenceAnswerPanel";
 import {
   getInitError,
   initPGlite,
@@ -20,8 +25,14 @@ interface HistoryItem {
   ts: number;
 }
 
+export type GradeState =
+  | { status: "unlocked"; latest: SubmittedAnswer }
+  | { status: "ungraded" }
+  | { status: "anonymous" };
+
 interface Props {
   content: HotCaseClientView;
+  gradeState: GradeState;
 }
 
 /**
@@ -33,7 +44,7 @@ interface Props {
  * The dataset comes from one of the existing company modules — for Hot Case
  * 001 it's NovaPay. content.dataset_company tells us which.
  */
-export function HotCaseWorkbench({ content }: Props) {
+export function HotCaseWorkbench({ content, gradeState }: Props) {
   const company = content.dataset_company;
   const [dbReady, setDbReady] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
@@ -42,8 +53,37 @@ export function HotCaseWorkbench({ content }: Props) {
   const [editorSql, setEditorSql] = useState("");
   const [tab, setTab] = useState("query");
   const [exerciseIdx, setExerciseIdx] = useState(0);
+  const [completed, setCompleted] = useState<Record<number, boolean>>({});
+  const completedKey = `atelier:hot-case:${content.slug}:completed`;
 
   const current: HotCaseExercise = content.exercises[exerciseIdx];
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(completedKey);
+      if (raw) setCompleted(JSON.parse(raw) as Record<number, boolean>);
+    } catch {}
+  }, [completedKey]);
+
+  const markComplete = useCallback(() => {
+    setCompleted((c) => {
+      const next = { ...c, [current.id]: true };
+      try {
+        localStorage.setItem(completedKey, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  }, [completedKey, current.id]);
+
+  const completedCount = useMemo(
+    () => Object.values(completed).filter(Boolean).length,
+    [completed]
+  );
+  const totalExercises = content.exercises.length;
+  const isLastExercise = exerciseIdx === totalExercises - 1;
+  // Per Decision 3 (Blueprint v1.1), scaffold replaces the prompt panel
+  // only on the last exercise once every exercise has been marked complete.
+  const showScaffold = isLastExercise && completedCount >= totalExercises;
 
   useEffect(() => {
     (async () => {
@@ -108,82 +148,114 @@ export function HotCaseWorkbench({ content }: Props) {
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        <aside className="w-[40%] min-w-[320px] overflow-y-auto border-r border-[#1e293b] bg-[#111827] p-5">
-          <div className="font-mono text-[11px] uppercase tracking-wider text-[#64748b]">
-            Exercise {exerciseIdx + 1} / {content.exercises.length}
-          </div>
-          <h2 className="mt-1 text-lg font-medium text-[#e2e8f0]">{current.title}</h2>
+        <aside className="flex w-[40%] min-w-[320px] flex-col border-r border-[#1e293b] bg-[#111827]">
+          {showScaffold ? (
+            <BriefingScaffold
+              briefingHref={`/hot-cases/${content.slug}/briefing`}
+            />
+          ) : (
+            <>
+              <div className="flex-1 overflow-y-auto p-5">
+                <div className="flex items-center justify-between">
+                  <div className="font-mono text-[11px] uppercase tracking-wider text-[#64748b]">
+                    Exercise {exerciseIdx + 1} / {totalExercises}
+                  </div>
+                  <div className="font-mono text-[10px] uppercase tracking-wider text-[#06d6a0]">
+                    {completedCount}/{totalExercises} complete
+                  </div>
+                </div>
+                <h2 className="mt-1 text-lg font-medium text-[#e2e8f0]">{current.title}</h2>
 
-          <div className="mt-4">
-            <div className="text-[11px] uppercase tracking-wider text-[#64748b]">
-              Question
-            </div>
-            <p className="mt-1 text-sm font-medium text-[#e2e8f0]">
-              {current.question}
-            </p>
-          </div>
+                <div className="mt-4">
+                  <div className="text-[11px] uppercase tracking-wider text-[#64748b]">
+                    Question
+                  </div>
+                  <p className="mt-1 text-sm font-medium text-[#e2e8f0]">
+                    {current.question}
+                  </p>
+                </div>
 
-          {current.tags && current.tags.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-1.5">
-              {current.tags.map((t) => (
-                <span
-                  key={t}
-                  className="border border-[#1e293b] bg-[#1a2235] px-2 py-0.5 font-mono text-[10px] text-[#64748b]"
+                {current.tags && current.tags.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-1.5">
+                    {current.tags.map((t) => (
+                      <span
+                        key={t}
+                        className="border border-[#1e293b] bg-[#1a2235] px-2 py-0.5 font-mono text-[10px] text-[#64748b]"
+                      >
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {current.hint && (
+                  <p className="mt-4 border-l-2 border-[#00f5d4]/50 bg-[#00f5d4]/5 px-3 py-2 text-xs leading-relaxed text-[#e2e8f0]/90">
+                    <span className="font-mono uppercase tracking-wider text-[#00f5d4]">
+                      Hint
+                    </span>
+                    <br />
+                    {current.hint}
+                  </p>
+                )}
+
+                <ReferenceAnswerPanel
+                  status={gradeState.status}
+                  referenceSQL={current.referenceSQL}
+                  referenceBriefing={content.reference_briefing}
+                  submitted={
+                    gradeState.status === "unlocked" ? gradeState.latest : undefined
+                  }
+                  onLoadIntoEditor={loadIntoEditor}
+                />
+              </div>
+
+              <div className="border-t border-[#1e293b] p-4">
+                <button
+                  onClick={markComplete}
+                  disabled={history.length === 0}
+                  className={`mb-3 inline-flex w-full items-center justify-center gap-2 px-3 py-2 text-xs font-medium transition ${
+                    completed[current.id]
+                      ? "border border-[#06d6a0] bg-transparent text-[#06d6a0]"
+                      : "bg-[#06d6a0] text-[#0a0f1a] hover:bg-[#06d6a0]/90 disabled:opacity-40"
+                  }`}
+                  title={
+                    history.length === 0
+                      ? "Run at least one query before marking complete"
+                      : completed[current.id]
+                        ? "Marked complete"
+                        : "Mark this exercise complete"
+                  }
                 >
-                  {t}
-                </span>
-              ))}
-            </div>
+                  <CheckCircle2 className="size-3.5" />
+                  {completed[current.id] ? "Completed" : "Mark complete"}
+                </button>
+                <nav className="flex items-center justify-between">
+                  <button
+                    onClick={() => setExerciseIdx(Math.max(0, exerciseIdx - 1))}
+                    disabled={exerciseIdx === 0}
+                    className="inline-flex items-center gap-1 text-xs text-[#e2e8f0]/80 hover:text-[#00f5d4] disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    <ArrowLeft className="size-3.5" /> Prev
+                  </button>
+                  {!isLastExercise ? (
+                    <button
+                      onClick={() => setExerciseIdx(exerciseIdx + 1)}
+                      className="inline-flex items-center gap-1 text-xs text-[#e2e8f0]/80 hover:text-[#00f5d4]"
+                    >
+                      Next <ArrowRight className="size-3.5" />
+                    </button>
+                  ) : (
+                    <Link
+                      href={`/hot-cases/${content.slug}/briefing`}
+                      className="inline-flex items-center gap-2 bg-[#00f5d4] px-3 py-1.5 text-xs font-medium text-[#0a0f1a] hover:opacity-90"
+                    >
+                      <FileText className="size-3.5" /> Write your briefing
+                    </Link>
+                  )}
+                </nav>
+              </div>
+            </>
           )}
-
-          {current.hint && (
-            <p className="mt-4 border-l-2 border-[#00f5d4]/50 bg-[#00f5d4]/5 px-3 py-2 text-xs leading-relaxed text-[#e2e8f0]/90">
-              <span className="font-mono uppercase tracking-wider text-[#00f5d4]">
-                Hint
-              </span>
-              <br />
-              {current.hint}
-            </p>
-          )}
-
-          {current.referenceSQL && (
-            <div className="mt-6">
-              <p className="text-[11px] uppercase tracking-wider text-[#64748b]">
-                Need a starting point?
-              </p>
-              <button
-                onClick={() => loadIntoEditor(current.referenceSQL!)}
-                className="mt-2 text-xs text-[#00f5d4] hover:underline"
-              >
-                Load reference SQL into editor →
-              </button>
-            </div>
-          )}
-
-          <nav className="mt-8 flex items-center justify-between border-t border-[#1e293b] pt-4">
-            <button
-              onClick={() => setExerciseIdx(Math.max(0, exerciseIdx - 1))}
-              disabled={exerciseIdx === 0}
-              className="inline-flex items-center gap-1 text-xs text-[#e2e8f0]/80 hover:text-[#00f5d4] disabled:cursor-not-allowed disabled:opacity-30"
-            >
-              <ArrowLeft className="size-3.5" /> Prev
-            </button>
-            {exerciseIdx < content.exercises.length - 1 ? (
-              <button
-                onClick={() => setExerciseIdx(exerciseIdx + 1)}
-                className="inline-flex items-center gap-1 text-xs text-[#e2e8f0]/80 hover:text-[#00f5d4]"
-              >
-                Next <ArrowRight className="size-3.5" />
-              </button>
-            ) : (
-              <Link
-                href={`/hot-cases/${content.slug}/briefing`}
-                className="inline-flex items-center gap-2 bg-[#00f5d4] px-3 py-1.5 text-xs font-medium text-[#0a0f1a] hover:opacity-90"
-              >
-                <FileText className="size-3.5" /> Write your briefing
-              </Link>
-            )}
-          </nav>
         </aside>
 
         <section className="flex flex-1 flex-col bg-[#0a0f1a]">

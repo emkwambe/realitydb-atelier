@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, Loader2, FileText, Compass, BookOpen, Trash2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExercisePanel } from "@/components/exercise/ExercisePanel";
+import { BriefingScaffold } from "@/components/exercise/BriefingScaffold";
 import { SqlEditor } from "@/components/exercise/SqlEditor";
 import { ResultsTable } from "@/components/exercise/ResultsTable";
 import { SchemaExplorer } from "@/components/exercise/SchemaExplorer";
@@ -224,11 +225,15 @@ export function ExerciseWorkbench({
 
   const showComparison = visited.size >= 2;
 
+  const completedCount = Object.values(completed).filter(Boolean).length;
   const allCompleted =
-    Object.values({ ...completed, [exercise.id]: completed[exercise.id] }).filter(
-      Boolean
-    ).length >= totalExercises ||
+    completedCount >= totalExercises ||
     (exercise.id === totalExercises && completed[exercise.id]);
+  // Per Decision 3, the briefing scaffold replaces the prompt panel only
+  // on the last exercise once every exercise has been marked complete —
+  // earlier pages stay reviewable.
+  const showScaffold =
+    exerciseNumber === totalExercises && completedCount >= totalExercises;
 
   return (
     <div className="flex h-[calc(100vh-7rem)] flex-col">
@@ -281,15 +286,20 @@ export function ExerciseWorkbench({
       <div className="flex flex-1 overflow-hidden">
         {!exploreMode && (
           <aside className="w-[40%] min-w-[320px] border-r border-[#1e293b] bg-[#111827]">
-            <ExercisePanel
-              exercise={exercise}
-              exerciseNumber={exerciseNumber}
-              totalExercises={totalExercises}
-              hasAttempted={history.length > 0}
-              isCompleted={Boolean(completed[exercise.id])}
-              onComplete={markComplete}
-              onUseReference={loadIntoEditor}
-            />
+            {showScaffold ? (
+              <BriefingScaffold briefingHref={`/companies/${company}/briefing`} />
+            ) : (
+              <ExercisePanel
+                exercise={exercise}
+                exerciseNumber={exerciseNumber}
+                totalExercises={totalExercises}
+                hasAttempted={history.length > 0}
+                isCompleted={Boolean(completed[exercise.id])}
+                onComplete={markComplete}
+                onUseReference={loadIntoEditor}
+                company={company}
+              />
+            )}
           </aside>
         )}
 

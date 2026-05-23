@@ -35,6 +35,9 @@ export interface HotCaseContent {
   exercises: HotCaseExercise[];
   briefing_prompt: string;
   grading_rubric: HotCaseRubric;
+  // Optional reference briefing shown side-by-side with the learner's
+  // submission only after their first graded submission (Decision 1).
+  reference_briefing?: string;
 }
 
 const HOT_CASES_DIR = path.join(process.cwd(), "content", "hot-cases");

@@ -31,5 +31,6 @@
     "pattern_detection": "Did the analyst identify that cohort retention is deteriorating even while blended MRR grows?",
     "quantification": "Did they put specific numbers on the retention gap between cohorts?",
     "recommendation_specificity": "Did they recommend a specific action — not 'investigate further' but an actual decision with a timeline?"
-  }
+  },
+  "reference_briefing": "NovaPay's blended MRR grew 6% this quarter but that number is hiding a structural problem. The 2023 cohort retains at ~94% at 24 months. The 2024 cohort drops to ~82% at 12 months. The 2025 cohort churns at approximately 3.2% per month in the first 90 days — 32% annualized. New customer volume is offsetting churn in aggregate MRR, which is why the top line looks healthy. The unit economics of the 2025 cohort are deeply negative. If the 2025 cohort stabilizes at 32% annual churn, LTV is roughly one-third of a 2023 customer at the same ACV. The 2025 cohort represents ~40% of active base.\n\nRecommendation: freeze growth spend on 2025 channels immediately. In 14 days run a cohort health audit — call the bottom 20% of 2025 customers by engagement score. By day 30 implement a 90-day structured onboarding for any 2025 customer below activation threshold. Do not present blended MRR to the board without a cohort decomposition slide.\n\nWhat I cannot confirm yet: whether churn is driven by product-market fit, onboarding failure, or sales qualification. I need support ticket volume by cohort and feature activation rates by cohort to separate those hypotheses."
 }
