@@ -69,9 +69,6 @@ export async function createCheckoutSession({
     ...(stripeCustomerId
       ? { customer: stripeCustomerId }
       : { customer_email: email, customer_creation: "always" as const }),
-    // Stripe Tax handles regional VAT/sales tax automatically when enabled
-    // in the dashboard.
-    automatic_tax: { enabled: true },
     allow_promotion_codes: true,
     // The most reliable way to map a Stripe event back to our user. Stripe
     // preserves these on the resulting Customer and Subscription objects too.

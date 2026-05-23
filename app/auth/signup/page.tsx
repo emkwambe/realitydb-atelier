@@ -5,6 +5,13 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { getSupabaseBrowserClient, getSiteUrl, isSupabaseConfigured } from "@/lib/supabase";
 
+// Treat a path as safe to navigate to post-signup. Reject anything starting
+// with "//" or "http" so an attacker can't craft ?next=https://evil.com.
+function safeNext(target: string): string {
+  if (!target.startsWith("/") || target.startsWith("//")) return "/companies/novapay";
+  return target;
+}
+
 type AccountType = "individual" | "university" | "corporate";
 
 const ACCOUNT_TYPES: { value: AccountType; label: string; description: string }[] = [
@@ -82,16 +89,29 @@ function SignupInner() {
         },
       },
     });
-    setLoading(false);
 
     if (signUpError) {
+      setLoading(false);
       setError(humanizeError(signUpError.message));
       return;
     }
-    // Stay on this page and show the inline confirmation. Do NOT navigate to
-    // a protected route — the session cookie may not have synced yet and the
-    // proxy would bounce us to /auth/login. The user must confirm email first.
-    void data;
+
+    // If the Supabase project has email confirmation disabled, signUp() returns
+    // an immediately-usable session. Drop the user straight into the app
+    // (or onward to checkout) — making them sit on a "check your inbox"
+    // screen when no email is coming is the loop we're fixing.
+    //
+    // If a session is NOT present, confirmation IS required — show the
+    // verification message and wait for them to click the email link.
+    if (data.session) {
+      // Hard navigation so the proxy reads the freshly-written
+      // sb-*-auth-token cookies on the first request to the protected route.
+      // router.push() can race the cookie write and bounce to /auth/login.
+      window.location.href = safeNext(next);
+      return;
+    }
+
+    setLoading(false);
     setMessage(
       planParam
         ? `Check your inbox at ${email} for a verification link. After you confirm, we'll send you to Stripe Checkout for the ${planParam} plan.`

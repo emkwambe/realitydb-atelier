@@ -1,0 +1,35 @@
+{
+  "slug": "cohort-collapse",
+  "title": "The Cohort Collapse",
+  "vertical": "B2B SaaS",
+  "primary_dimension": "Financial Intelligence",
+  "secondary_dimension": "Decision Intelligence",
+  "pattern_id": "mrr-growth-masking-cohort-decay",
+  "context": "NovaPay reports 6% MRR growth this quarter. The CFO sends one message before the board meeting: 'Pull the cohort numbers first. Something feels soft.' You have 90 minutes.",
+  "hidden_crisis": "Top-line MRR growth is masking deteriorating cohort retention. The 2025 acquisition cohort is churning at 3x the rate of the 2023 cohort. Blended MRR looks healthy because new customer volume is offsetting retention decay — but the economics are deteriorating rapidly.",
+  "dataset_company": "novapay",
+  "exercises": [
+    {
+      "id": 1,
+      "title": "Read the MRR",
+      "question": "What is NovaPay's MRR trend over the last 12 months? Is the business growing?",
+      "hint": "Use DATE_TRUNC and SUM on the subscriptions table. Group by month.",
+      "tags": ["SELECT", "DATE_TRUNC", "GROUP BY"],
+      "referenceSQL": "SELECT\n  DATE_TRUNC('month', started_at) AS month,\n  SUM(mrr_cents) / 100.0 AS total_mrr\nFROM subscriptions\nWHERE status = 'active'\n  AND started_at >= NOW() - INTERVAL '12 months'\nGROUP BY month\nORDER BY month;"
+    },
+    {
+      "id": 2,
+      "title": "Break it by cohort",
+      "question": "Group customers by their acquisition year. What is the 12-month retention rate for each acquisition cohort?",
+      "hint": "Join customers to subscriptions. Use the signed_at date to define cohorts.",
+      "tags": ["JOIN", "cohort analysis", "retention"],
+      "referenceSQL": "SELECT\n  DATE_PART('year', c.signed_at) AS cohort_year,\n  COUNT(DISTINCT c.id) AS cohort_size,\n  SUM(CASE WHEN s.status = 'cancelled' THEN 1 ELSE 0 END) AS churned,\n  ROUND(\n    SUM(CASE WHEN s.status = 'cancelled' THEN 1 ELSE 0 END) * 100.0\n    / NULLIF(COUNT(DISTINCT c.id), 0), 1\n  ) AS churn_pct\nFROM customers c\nLEFT JOIN subscriptions s ON s.customer_id = c.id\nGROUP BY cohort_year\nORDER BY cohort_year;"
+    }
+  ],
+  "briefing_prompt": "The CFO is walking into the board meeting in 10 minutes. Write the briefing. Lead with what you found, quantify the impact, and tell her what to do.",
+  "grading_rubric": {
+    "pattern_detection": "Did the analyst identify that cohort retention is deteriorating even while blended MRR grows?",
+    "quantification": "Did they put specific numbers on the retention gap between cohorts?",
+    "recommendation_specificity": "Did they recommend a specific action — not 'investigate further' but an actual decision with a timeline?"
+  }
+}

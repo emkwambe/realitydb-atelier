@@ -69,7 +69,11 @@ export default function ProgressPage() {
     setStatuses(rows);
   }, []);
 
-  if (auth.isLoading) {
+  // Defensive guard. useAuth() is null-safe (returns SAFE_DEFAULT) but we
+  // keep this check as belt-and-suspenders so a future regression can't
+  // crash this page with "Cannot destructure property 'isAuthenticated'
+  // of 'object null'".
+  if (!auth || auth.isLoading) {
     return (
       <div className="mx-auto max-w-3xl px-6 py-20 text-sm text-[#64748b]">
         Loading…
