@@ -11,9 +11,10 @@ import { useAuthContext, type AuthState } from "@/lib/auth/AuthProvider";
 const SAFE_DEFAULT: AuthState = {
   user: null,
   profile: null,
-  role: null,
+  role: "learner",
   isLoading: true,
   isAuthenticated: false,
+  isAdmin: false,
   signOut: async () => {},
   refresh: async () => {},
 };

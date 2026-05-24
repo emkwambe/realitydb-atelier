@@ -64,9 +64,13 @@ export function SiteHeader() {
     setMounted(true);
   }, []);
 
-  const { user, role, isLoading, signOut } = auth;
+  const { user, role, isAdmin, isLoading, signOut } = auth;
   const showAuthenticatedNav = mounted && user && role;
   const navLinks = showAuthenticatedNav ? NAV_BY_ROLE[role] : PUBLIC_NAV;
+  // Admin link is additive — appended after the role nav for any admin
+  // user. Gate on `mounted` for the same hydration reason as the rest of
+  // the auth-derived nav.
+  const showAdminLink = mounted && isAdmin;
 
   async function handleSignOut() {
     await signOut();
@@ -99,6 +103,15 @@ export function SiteHeader() {
               )}
             </Link>
           ))}
+
+          {showAdminLink && (
+            <Link
+              href="/admin/hot-cases"
+              className="inline-flex items-center gap-1.5 hover:text-[#e2e8f0]"
+            >
+              Admin
+            </Link>
+          )}
 
           {!mounted || isLoading ? (
             <Link

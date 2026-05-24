@@ -11,6 +11,7 @@ export interface AuthState {
   role: Role | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  isAdmin: boolean;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
 }
@@ -21,6 +22,7 @@ const DEFAULT_STATE: AuthState = {
   role: null,
   isLoading: true,
   isAuthenticated: false,
+  isAdmin: false,
   signOut: async () => {},
   refresh: async () => {},
 };
@@ -101,6 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     profile,
     role: profile?.role ?? null,
     isAuthenticated: !!user,
+    isAdmin: profile?.role === "admin",
     isLoading,
     signOut,
     refresh,
