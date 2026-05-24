@@ -17,11 +17,26 @@ export function SqlEditor({ initialSql = "", onResult, onSave, lastResult }: Pro
   const [saveOpen, setSaveOpen] = useState(false);
   const [saveLabel, setSaveLabel] = useState("");
   const [savedFlash, setSavedFlash] = useState(false);
+  // `navigator` is unavailable during SSR, so default to false and flip
+  // post-mount. Server and first client paint both render "Ctrl+Enter to
+  // run"; Mac users see "⌘+Enter to run" once the effect runs. The
+  // keybinding itself already fires on both modifiers regardless of
+  // this label.
+  const [isMac, setIsMac] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setSql(initialSql);
   }, [initialSql]);
+
+  useEffect(() => {
+    if (typeof navigator === "undefined") return;
+    const platform =
+      navigator.platform || (navigator as Navigator).userAgent || "";
+    setIsMac(platform.toUpperCase().includes("MAC"));
+  }, []);
+
+  const shortcutLabel = isMac ? "⌘+Enter to run" : "Ctrl+Enter to run";
 
   const run = useCallback(async () => {
     if (!sql.trim() || running) return;
@@ -53,7 +68,7 @@ export function SqlEditor({ initialSql = "", onResult, onSave, lastResult }: Pro
         <div className="flex items-center gap-3 text-[#64748b]">
           <span className="font-mono">query.sql</span>
           <span className="text-[#1e293b]">·</span>
-          <span>Ctrl+Enter to run</span>
+          <span>{shortcutLabel}</span>
         </div>
         <div className="flex items-center gap-2">
           {onSave && (
