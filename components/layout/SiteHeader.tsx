@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/useAuth";
@@ -53,10 +54,19 @@ const PUBLIC_NAV: NavLink[] = [
 export function SiteHeader() {
   const router = useRouter();
   const auth = useAuth();
-  if (!auth) return null;
-  const { user, role, isLoading, signOut } = auth;
+  // The server can't see the browser's auth cookies during initial render,
+  // so it always emits PUBLIC_NAV + the Sign In button. Defer the
+  // auth-derived nav until after hydration to keep the first client paint
+  // byte-identical to the server output — otherwise React throws a
+  // hydration mismatch when the role-specific nav items differ in count.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  const navLinks = user && role ? NAV_BY_ROLE[role] : PUBLIC_NAV;
+  const { user, role, isLoading, signOut } = auth;
+  const showAuthenticatedNav = mounted && user && role;
+  const navLinks = showAuthenticatedNav ? NAV_BY_ROLE[role] : PUBLIC_NAV;
 
   async function handleSignOut() {
     await signOut();
@@ -90,8 +100,13 @@ export function SiteHeader() {
             </Link>
           ))}
 
-          {isLoading ? (
-            <span className="text-xs text-[#64748b]">…</span>
+          {!mounted || isLoading ? (
+            <Link
+              href="/auth/login"
+              className="rounded-md border border-[#1e293b] px-3 py-1.5 text-[#e2e8f0] hover:border-[#06d6a0] hover:text-[#06d6a0]"
+            >
+              Sign In
+            </Link>
           ) : user ? (
             <button
               onClick={handleSignOut}

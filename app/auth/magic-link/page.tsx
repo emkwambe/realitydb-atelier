@@ -3,7 +3,7 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { getSupabaseBrowserClient, getSiteUrl, isSupabaseConfigured } from "@/lib/supabase";
+import { getSupabaseOtpClient, getSiteUrl, isSupabaseConfigured } from "@/lib/supabase";
 import { humanizeAuthError } from "@/lib/auth/errors";
 
 function MagicLinkInner() {
@@ -19,13 +19,15 @@ function MagicLinkInner() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    const sb = getSupabaseBrowserClient();
-    if (!sb) {
+    // Implicit-flow client so the email link works across browsers
+    // (see lib/supabase.ts for the why).
+    const otpClient = getSupabaseOtpClient();
+    if (!otpClient) {
       setError("Supabase is not configured.");
       return;
     }
     setLoading(true);
-    const { error: linkError } = await sb.auth.signInWithOtp({
+    const { error: linkError } = await otpClient.auth.signInWithOtp({
       email,
       options: {
         emailRedirectTo: `${getSiteUrl()}/auth/callback?next=${encodeURIComponent(next)}`,

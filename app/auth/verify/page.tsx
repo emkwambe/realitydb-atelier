@@ -3,7 +3,7 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { getSupabaseBrowserClient, getSiteUrl } from "@/lib/supabase";
+import { getSupabaseOtpClient, getSiteUrl } from "@/lib/supabase";
 
 function VerifyInner() {
   const params = useSearchParams();
@@ -19,13 +19,15 @@ function VerifyInner() {
     }
     setStatus("sending");
     setError(null);
-    const sb = getSupabaseBrowserClient();
-    if (!sb) {
+    // Implicit-flow OTP client so the resent link works cross-browser
+    // (see lib/supabase.ts for the why).
+    const otpClient = getSupabaseOtpClient();
+    if (!otpClient) {
       setError("Supabase is not configured.");
       setStatus("error");
       return;
     }
-    const { error: resendError } = await sb.auth.resend({
+    const { error: resendError } = await otpClient.auth.resend({
       type: "signup",
       email,
       options: { emailRedirectTo: `${getSiteUrl()}/auth/callback` },

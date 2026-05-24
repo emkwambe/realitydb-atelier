@@ -3,7 +3,12 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getSupabaseBrowserClient, getSiteUrl, isSupabaseConfigured } from "@/lib/supabase";
+import {
+  getSupabaseBrowserClient,
+  getSupabaseOtpClient,
+  getSiteUrl,
+  isSupabaseConfigured,
+} from "@/lib/supabase";
 import { humanizeAuthError } from "@/lib/auth/errors";
 
 type Mode = "password" | "magic-link";
@@ -63,13 +68,16 @@ function LoginInner() {
     e.preventDefault();
     setError(null);
     setMessage(null);
-    const sb = getSupabaseBrowserClient();
-    if (!sb) {
+    // Use the implicit-flow OTP client (see lib/supabase.ts) so the link
+    // works when clicked in a different browser than the one that requested
+    // it. The browser session client stays untouched.
+    const otpClient = getSupabaseOtpClient();
+    if (!otpClient) {
       setError("Supabase is not configured.");
       return;
     }
     setLoading(true);
-    const { error: linkError } = await sb.auth.signInWithOtp({
+    const { error: linkError } = await otpClient.auth.signInWithOtp({
       email,
       options: {
         emailRedirectTo: `${getSiteUrl()}/auth/callback?next=${encodeURIComponent(next)}`,

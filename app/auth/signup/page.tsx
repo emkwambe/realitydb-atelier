@@ -3,7 +3,12 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { getSupabaseBrowserClient, getSiteUrl, isSupabaseConfigured } from "@/lib/supabase";
+import {
+  getSupabaseBrowserClient,
+  getSupabaseOtpClient,
+  getSiteUrl,
+  isSupabaseConfigured,
+} from "@/lib/supabase";
 
 // Treat a path as safe to navigate to post-signup. Reject anything starting
 // with "//" or "http" so an attacker can't craft ?next=https://evil.com.
@@ -71,14 +76,18 @@ function SignupInner() {
       return;
     }
 
-    const sb = getSupabaseBrowserClient();
-    if (!sb) {
+    // Sign up via the implicit-flow OTP client (see lib/supabase.ts) so the
+    // confirmation email link works when opened in a different browser than
+    // the one that submitted the form. PKCE links require the verifier
+    // cookie on the *original* browser and silently fail otherwise.
+    const otpClient = getSupabaseOtpClient();
+    if (!otpClient) {
       setError("Supabase is not configured.");
       return;
     }
 
     setLoading(true);
-    const { data, error: signUpError } = await sb.auth.signUp({
+    const { data, error: signUpError } = await otpClient.auth.signUp({
       email,
       password,
       options: {
@@ -101,9 +110,19 @@ function SignupInner() {
     // (or onward to checkout) — making them sit on a "check your inbox"
     // screen when no email is coming is the loop we're fixing.
     //
-    // If a session is NOT present, confirmation IS required — show the
-    // verification message and wait for them to click the email link.
+    // The OTP client has persistSession=false, so the returned session is
+    // not written anywhere automatically — transplant it onto the real
+    // browser session client (which writes the sb-*-auth-token cookies the
+    // middleware reads). If a session is NOT present, confirmation IS
+    // required — show the verification message instead.
     if (data.session) {
+      const sb = getSupabaseBrowserClient();
+      if (sb) {
+        await sb.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
+      }
       // Hard navigation so the proxy reads the freshly-written
       // sb-*-auth-token cookies on the first request to the protected route.
       // router.push() can race the cookie write and bounce to /auth/login.

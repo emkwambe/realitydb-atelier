@@ -20,6 +20,30 @@ export function getSupabaseBrowserClient(): SupabaseClient | null {
   return browserClient;
 }
 
+// Vanilla Supabase client pinned to the implicit OAuth flow, used only for
+// email-link operations (signInWithOtp, signUp). Why a separate client:
+// @supabase/ssr's createBrowserClient does not reliably forward the
+// `flowType: 'implicit'` option through to its underlying GoTrue client —
+// so signInWithOtp on the browser client keeps generating PKCE links whose
+// code verifiers are stored on the *sending* browser. When the user opens
+// the link in another browser the verifier is missing and the exchange
+// fails with "PKCE code verifier not found in storage". The implicit flow
+// embeds the credential directly in the URL fragment, so it works
+// cross-browser. `persistSession: false` keeps this client from clobbering
+// the real session cookies — we use it strictly to send the email.
+export function getSupabaseOtpClient(): SupabaseClient | null {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key, {
+    auth: {
+      flowType: "implicit",
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+}
+
 export function isSupabaseConfigured(): boolean {
   return Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
