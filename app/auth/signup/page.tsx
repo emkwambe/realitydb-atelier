@@ -87,11 +87,15 @@ function SignupInner() {
     }
 
     setLoading(true);
+    // Implicit flow puts the access token in the URL fragment and redirects
+    // straight to emailRedirectTo — no /auth/callback hop is needed. `next`
+    // already encodes any plan/billing query params for the paid-signup
+    // path through to /checkout/start.
     const { data, error: signUpError } = await otpClient.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${getSiteUrl()}/auth/callback?next=${encodeURIComponent(next)}`,
+        emailRedirectTo: `${getSiteUrl()}${next}`,
         data: {
           full_name: fullName,
           account_type: accountType,

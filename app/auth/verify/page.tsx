@@ -27,10 +27,13 @@ function VerifyInner() {
       setStatus("error");
       return;
     }
+    // Implicit flow redirects straight to emailRedirectTo after verifying
+    // the token — no /auth/callback hop needed. Land on the default
+    // post-signup destination.
     const { error: resendError } = await otpClient.auth.resend({
       type: "signup",
       email,
-      options: { emailRedirectTo: `${getSiteUrl()}/auth/callback` },
+      options: { emailRedirectTo: `${getSiteUrl()}/companies/novapay` },
     });
     if (resendError) {
       setError(resendError.message);

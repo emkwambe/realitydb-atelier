@@ -77,10 +77,14 @@ function LoginInner() {
       return;
     }
     setLoading(true);
+    // Implicit flow puts the access token in the URL fragment and redirects
+    // straight to emailRedirectTo — no /auth/callback hop is needed. Point
+    // at the final destination directly so the email URL doesn't double-
+    // encode a nested next= param.
     const { error: linkError } = await otpClient.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${getSiteUrl()}/auth/callback?next=${encodeURIComponent(next)}`,
+        emailRedirectTo: `${getSiteUrl()}${next}`,
         shouldCreateUser: false,
       },
     });

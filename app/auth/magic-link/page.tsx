@@ -27,10 +27,12 @@ function MagicLinkInner() {
       return;
     }
     setLoading(true);
+    // Implicit flow puts the access token in the URL fragment and redirects
+    // straight to emailRedirectTo — no /auth/callback hop is needed.
     const { error: linkError } = await otpClient.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${getSiteUrl()}/auth/callback?next=${encodeURIComponent(next)}`,
+        emailRedirectTo: `${getSiteUrl()}${next}`,
         shouldCreateUser: false,
       },
     });
