@@ -105,12 +105,20 @@ export function SiteHeader() {
           ))}
 
           {showAdminLink && (
-            <Link
-              href="/admin/hot-cases"
-              className="inline-flex items-center gap-1.5 hover:text-[#e2e8f0]"
-            >
-              Admin
-            </Link>
+            <>
+              <Link
+                href="/admin/hot-cases"
+                className="inline-flex items-center gap-1.5 hover:text-[#e2e8f0]"
+              >
+                Admin
+              </Link>
+              <Link
+                href="/admin/waitlist"
+                className="inline-flex items-center gap-1.5 hover:text-[#e2e8f0]"
+              >
+                Waitlist
+              </Link>
+            </>
           )}
 
           {!mounted || isLoading ? (

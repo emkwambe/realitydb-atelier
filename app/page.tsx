@@ -113,6 +113,12 @@ export default function HomePage() {
             Built for your team →
           </Link>
         </div>
+        <p className="mt-4 text-xs text-[#64748b]">
+          Not ready yet?{" "}
+          <Link href="/waitlist" className="text-[#94a3b8] hover:text-[#06d6a0]">
+            Join the waitlist →
+          </Link>
+        </p>
       </section>
 
       <section className="mt-20 md:mt-28">
