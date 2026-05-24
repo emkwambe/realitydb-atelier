@@ -50,7 +50,44 @@ function LeftColumn() {
         <Step
           n="01"
           title="A real database"
-          body="50,000 rows of synthetic company data. Real PostgreSQL. No install. Industry-accurate schemas with citation trails."
+          body={
+            <>
+              <p>
+                50,000 rows of synthetic company data. Real PostgreSQL. No
+                install. Industry-accurate schemas with citation trails.
+              </p>
+              <p className="mt-3">
+                Six companies across six verticals — each with a full
+                operational history:
+              </p>
+              <ul className="mt-2 space-y-1.5">
+                <Company name="NovaPay" vertical="B2B SaaS payments platform" />
+                <Company
+                  name="MedCore Health"
+                  vertical="Regional hospital system"
+                />
+                <Company
+                  name="SupplyLink Operations"
+                  vertical="Manufacturing supply chain"
+                />
+                <Company
+                  name="TowerNet Communications"
+                  vertical="Mobile network operator"
+                />
+                <Company
+                  name="ClearBank Financial"
+                  vertical="Regional bank, AML compliance"
+                />
+                <Company
+                  name="OncoCare Therapeutics"
+                  vertical="Phase III oncology trial"
+                />
+              </ul>
+              <p className="mt-3 text-[12px] italic text-[#475569]">
+                More companies added quarterly.
+              </p>
+            </>
+          }
         />
         <Step
           n="02"
@@ -117,7 +154,15 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Step({ n, title, body }: { n: string; title: string; body: string }) {
+function Step({
+  n,
+  title,
+  body,
+}: {
+  n: string;
+  title: string;
+  body: React.ReactNode;
+}) {
   return (
     <li className="flex gap-3">
       <span className="shrink-0 font-mono text-[13px] font-bold text-[#06d6a0]">
@@ -125,8 +170,27 @@ function Step({ n, title, body }: { n: string; title: string; body: string }) {
       </span>
       <div>
         <div className="text-sm font-medium text-[#e2e8f0]">{title}</div>
-        <p className="mt-1 text-sm leading-relaxed text-[#94a3b8]">{body}</p>
+        {typeof body === "string" ? (
+          <p className="mt-1 text-sm leading-relaxed text-[#94a3b8]">{body}</p>
+        ) : (
+          <div className="mt-1 text-sm leading-relaxed text-[#94a3b8]">
+            {body}
+          </div>
+        )}
       </div>
+    </li>
+  );
+}
+
+function Company({ name, vertical }: { name: string; vertical: string }) {
+  return (
+    <li className="flex gap-2 text-[13px] text-[#94a3b8]">
+      <span className="text-[#475569]">·</span>
+      <span>
+        <span className="font-semibold text-[#e2e8f0]">{name}</span>
+        <span className="text-[#475569]"> — </span>
+        {vertical}
+      </span>
     </li>
   );
 }
