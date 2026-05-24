@@ -42,48 +42,38 @@ const NOVAPAY_ARC: readonly string[] = [
 ];
 
 interface Dimension {
-  n: string;
   name: string;
-  skills: string[];
-  company: string;
+  body: string;
 }
 
+// The six dimensions of business acumen Atelier develops, per
+// ATELIER-CURRICULUM-FRAMEWORK.md. Each card describes what the
+// dimension develops — not which company anchors it. Every module
+// exercises all six simultaneously.
 const DIMENSIONS: readonly Dimension[] = [
   {
-    n: "01",
     name: "Financial Intelligence",
-    skills: ["Revenue trends · Cohort decay", "Unit economics · LTV:CAC"],
-    company: "NovaPay",
+    body: "Reading the financial signals in operational data before they appear in quarterly reports. Revenue trends, cohort economics, unit margins, and the leading indicators that predict performance.",
   },
   {
-    n: "02",
-    name: "Clinical Intelligence",
-    skills: ["Trial outcomes · Protocol risk", "Regulatory thresholds · FDA signals"],
-    company: "OncoCare",
-  },
-  {
-    n: "03",
     name: "Operational Intelligence",
-    skills: ["Supply chain efficiency", "COGS pressure · Delivery SLA"],
-    company: "SupplyLink",
+    body: "Finding where a business loses efficiency, capacity, or quality by reading process and log data. Bottleneck identification, root cause analysis, and linking operational failure to business outcome.",
   },
   {
-    n: "04",
-    name: "Risk & Compliance Intelligence",
-    skills: ["AML pattern detection", "Wire anomalies · Exposure gaps"],
-    company: "ClearBank",
+    name: "Strategic Intelligence",
+    body: "Identifying competitive dynamics and market positioning risks from internal data patterns. Recognizing when an operational anomaly is actually a strategic threat.",
   },
   {
-    n: "05",
-    name: "Growth Intelligence",
-    skills: ["Churn by region · ARPU trends", "Network investment ROI"],
-    company: "TowerNet",
+    name: "Decision Intelligence",
+    body: "Translating analysis into defensible recommendations under uncertainty. Quantifying trade-offs, acknowledging what the data cannot confirm, and making the call the data supports.",
   },
   {
-    n: "06",
-    name: "Healthcare Systems Intelligence",
-    skills: ["Net collection rate · Payer mix", "Readmission risk · Cost per case"],
-    company: "MedCore",
+    name: "Communication Intelligence",
+    body: "Making the right argument to the right audience. The same finding requires different framing for a CFO, an engineering lead, and a board. This dimension teaches that translation.",
+  },
+  {
+    name: "Augmented Intelligence",
+    body: "Using the database as a forward-looking instrument — not just a record of what happened. Pattern recognition, anomaly detection, and leading indicator identification before lagging metrics confirm them.",
   },
 ];
 
@@ -109,6 +99,17 @@ function LeftColumn() {
       <p className="text-base leading-[1.7] text-[#94a3b8] md:mt-10">
         Most analytics training teaches you to run queries. None of it
         teaches you what to do with the answer. Atelier closes that gap.
+      </p>
+
+      {/* B.1 Position statement — visually subordinate, italic. Frames
+          Atelier against SQL Learn per ATELIER-PRODUCT-PHILOSOPHY.md. */}
+      <p className="mt-4 mb-6 text-[13px] italic leading-[1.7] text-[#64748b]">
+        Atelier is not a SQL course. It assumes you can query. It teaches
+        you what to look for. However, by continuously interacting with
+        realistic schemas, relationships, operational data environments,
+        and revealed solutions, users naturally strengthen, refine, and
+        modernize their SQL thinking and practical query skills over
+        time.
       </p>
 
       {/* C. How it works */}
@@ -184,11 +185,12 @@ function LeftColumn() {
       </p>
       <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
         {DIMENSIONS.map((d) => (
-          <DimensionCard key={d.n} dim={d} />
+          <DimensionCard key={d.name} dim={d} />
         ))}
       </div>
       <p className="mt-3 text-center text-[12px] italic text-[#475569]">
-        Each module is independent. Start with any vertical.
+        Six dimensions. Six companies. Each investigation develops all six —
+        simultaneously.
       </p>
 
       {/* E. The credential */}
@@ -242,19 +244,19 @@ function LeftColumn() {
           accent="#06d6a0"
           title="Individual professionals"
           body="Analysts, finance professionals, and MBA students building verifiable business acumen. Self-serve Stripe checkout. Cancel anytime."
-          pricing="From $32.50/month · Module or All-Access"
+          pricing="Self-serve access · Module or All-Access plans"
         />
         <AudienceCard
           accent="#a855f7"
           title="Corporate L&D teams"
           body="Invest in analyst capability at scale. Cohort dashboards, progress tracking, and team reports. Under the $10K procurement threshold — one person can sign."
-          pricing="From $9,999/year · 10 seats"
+          pricing="Team licensing · Cohort dashboard included"
         />
         <AudienceCard
           accent="#f59e0b"
           title="Universities and MBA programs"
           body="Embed business acumen into analytics and finance curricula. Semester licensing, instructor dashboards, LMS integration, and student credentials."
-          pricing="From $4,999/semester · Up to 30 students"
+          pricing="Semester or annual licensing · Instructor dashboard included"
         />
       </div>
       <p className="mt-3 text-center text-[12px] italic text-[#475569]">
@@ -305,12 +307,12 @@ function Step({
 
 function Company({ name, vertical }: { name: string; vertical: string }) {
   return (
-    <li className="flex gap-2 text-[13px] text-[#94a3b8]">
+    <li className="flex gap-2 text-[13px]">
       <span className="text-[#475569]">·</span>
       <span>
         <span className="font-semibold text-[#e2e8f0]">{name}</span>
         <span className="text-[#475569]"> — </span>
-        {vertical}
+        <span className="text-[#64748b]">{vertical}</span>
       </span>
     </li>
   );
@@ -319,20 +321,12 @@ function Company({ name, vertical }: { name: string; vertical: string }) {
 function DimensionCard({ dim }: { dim: Dimension }) {
   return (
     <div className="rounded-md border border-[#1e2d45] bg-[#0d1526] px-4 py-3 transition hover:border-[#06d6a0]">
-      <div className="flex items-baseline justify-between gap-3">
-        <div className="font-mono text-[11px] text-[#06d6a0]">{dim.n}</div>
-        <div className="font-mono text-[11px] text-[#475569]">
-          {dim.company}
-        </div>
-      </div>
-      <div className="mt-1 text-[14px] font-semibold text-[#e2e8f0]">
+      <div className="font-mono text-[11px] uppercase tracking-[0.12em] text-[#06d6a0]">
         {dim.name}
       </div>
-      <ul className="mt-2 space-y-0.5 text-[12px] leading-relaxed text-[#94a3b8]">
-        {dim.skills.map((s) => (
-          <li key={s}>{s}</li>
-        ))}
-      </ul>
+      <p className="mt-2 text-[13px] leading-relaxed text-[#94a3b8]">
+        {dim.body}
+      </p>
     </div>
   );
 }
