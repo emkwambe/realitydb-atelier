@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { AuthProvider } from "@/lib/auth/AuthProvider";
 
@@ -57,7 +58,15 @@ function SiteFooter() {
     <footer className="border-t border-[#1e293b] bg-[#0a0f1a]">
       <div className="mx-auto max-w-[1280px] px-6 py-8 text-center text-xs text-[#64748b]">
         Powered by <span className="text-[#06d6a0]">RealityDb</span> ·{" "}
-        <span className="text-[#00f5d4]">Mpingo Systems LLC</span> · Charlotte, NC
+        <span className="text-[#00f5d4]">Mpingo Systems LLC</span> · Raleigh, NC
+        {" · "}
+        <Link href="/legal/privacy" className="hover:text-[#06d6a0]">
+          Privacy Policy
+        </Link>
+        {" · "}
+        <Link href="/legal/terms" className="hover:text-[#06d6a0]">
+          Terms of Service
+        </Link>
       </div>
     </footer>
   );
