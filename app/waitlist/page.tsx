@@ -112,7 +112,7 @@ function LeftColumn() {
       <article className="mt-3 border border-[#1e293b] bg-[#111827] p-5">
         <div className="font-mono text-[11px] uppercase tracking-wider text-[#64748b]">
           B2B SaaS · Financial Intelligence ·{" "}
-          <span className="text-[#06d6a0]">Free</span>
+          <span className="text-[#a855f7]">Free</span>
         </div>
         <h3 className="mt-2 text-lg font-medium text-[#e2e8f0]">
           The Cohort Collapse
@@ -220,8 +220,9 @@ function RightColumn() {
 
         <p className="mt-3 text-sm text-[#94a3b8]">
           The first Hot Case drops{" "}
-          <span className="text-[#06d6a0]">June 16</span>. Free. No account
-          required to attempt.
+          <span className="text-[#06d6a0]">June 16</span>.{" "}
+          <span className="text-[#a855f7]">Free.</span> No account required to
+          attempt.
         </p>
 
         <blockquote className="mt-7 border-l-2 border-[#00f5d4] bg-[#111827] px-4 py-3 text-sm leading-relaxed text-[#e2e8f0]/90">
