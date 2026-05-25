@@ -20,25 +20,25 @@ const HOT_CASES_LINK: NavLink = {
 
 const NAV_BY_ROLE: Record<Role, NavLink[]> = {
   learner: [
-    { href: "/companies/novapay", label: "Companies" },
+    { href: "/companies", label: "Companies" },
     HOT_CASES_LINK,
     { href: "/pricing", label: "Pricing" },
     { href: "/account/progress", label: "My Progress" },
   ],
   instructor: [
-    { href: "/companies/novapay", label: "Companies" },
+    { href: "/companies", label: "Companies" },
     HOT_CASES_LINK,
     { href: "/cohorts", label: "My Cohorts" },
     { href: "/cohorts/progress", label: "Student Progress" },
   ],
   institution: [
-    { href: "/companies/novapay", label: "Companies" },
+    { href: "/companies", label: "Companies" },
     HOT_CASES_LINK,
     { href: "/cohorts", label: "Cohorts" },
     { href: "/admin/analytics", label: "Analytics" },
   ],
   admin: [
-    { href: "/companies/novapay", label: "Companies" },
+    { href: "/companies", label: "Companies" },
     HOT_CASES_LINK,
     { href: "/admin/users", label: "All Users" },
     { href: "/admin/submissions", label: "All Submissions" },
@@ -46,7 +46,7 @@ const NAV_BY_ROLE: Record<Role, NavLink[]> = {
 };
 
 const PUBLIC_NAV: NavLink[] = [
-  { href: "/companies/novapay", label: "Companies" },
+  { href: "/companies", label: "Companies" },
   HOT_CASES_LINK,
   { href: "/pricing", label: "Pricing" },
 ];
