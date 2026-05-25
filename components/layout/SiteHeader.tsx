@@ -40,8 +40,6 @@ const NAV_BY_ROLE: Record<Role, NavLink[]> = {
   admin: [
     { href: "/companies", label: "Companies" },
     HOT_CASES_LINK,
-    { href: "/admin/users", label: "All Users" },
-    { href: "/admin/submissions", label: "All Submissions" },
   ],
 };
 
