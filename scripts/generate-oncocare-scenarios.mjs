@@ -4,9 +4,10 @@
 // Reads oncocare-30k-baseline.sql (already enforced) and emits two scenario
 // branches plus a pre-computed comparison JSON.
 //
-//   public/data/oncocare-30k-scenario-a.sql  Exclude SITE-07 from primary analysis
-//   public/data/oncocare-30k-scenario-b.sql  Remediate SITE-07 — enhanced monitoring
-//   public/data/oncocare-comparison-ab.json
+//   datasets/oncocare-30k-scenario-a.sql  Exclude SITE-07 from primary analysis
+//   datasets/oncocare-30k-scenario-b.sql  Remediate SITE-07 — enhanced monitoring
+//   datasets/oncocare-comparison-ab.json
+// (baseline INPUT stays public/data; scenario/comparison go to /datasets.)
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -14,9 +15,9 @@ import { resolve } from "node:path";
 const baselinePath = resolve(
   process.argv[2] || "public/data/oncocare-30k-baseline.sql"
 );
-const scenarioAPath = resolve("public/data/oncocare-30k-scenario-a.sql");
-const scenarioBPath = resolve("public/data/oncocare-30k-scenario-b.sql");
-const compareJson = resolve("public/data/oncocare-comparison-ab.json");
+const scenarioAPath = resolve("datasets/oncocare-30k-scenario-a.sql");
+const scenarioBPath = resolve("datasets/oncocare-30k-scenario-b.sql");
+const compareJson = resolve("datasets/oncocare-comparison-ab.json");
 
 console.log(`[scenarios] reading ${baselinePath}`);
 const raw = readFileSync(baselinePath, "utf8");

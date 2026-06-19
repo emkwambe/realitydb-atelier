@@ -3,10 +3,11 @@
 //
 // Reads medcore-50k-baseline.sql (already enforced) and emits two scenario
 // branches:
-//   public/data/medcore-50k-scenario-a.sql  Contract renegotiated
-//   public/data/medcore-50k-scenario-b.sql  Volume pivot away from MidState
+//   datasets/medcore-50k-scenario-a.sql  Contract renegotiated
+//   datasets/medcore-50k-scenario-b.sql  Volume pivot away from MidState
 // Plus a pre-computed metric comparison:
-//   public/data/medcore-comparison-ab.json
+//   datasets/medcore-comparison-ab.json
+// (baseline INPUT stays public/data; scenario/comparison go to /datasets.)
 //
 // Pure INSERT-row mutation. No UPDATE/DELETE.
 
@@ -16,9 +17,9 @@ import { resolve } from "node:path";
 const baselinePath = resolve(
   process.argv[2] || "public/data/medcore-50k-baseline.sql"
 );
-const scenarioAPath = resolve("public/data/medcore-50k-scenario-a.sql");
-const scenarioBPath = resolve("public/data/medcore-50k-scenario-b.sql");
-const compareJson = resolve("public/data/medcore-comparison-ab.json");
+const scenarioAPath = resolve("datasets/medcore-50k-scenario-a.sql");
+const scenarioBPath = resolve("datasets/medcore-50k-scenario-b.sql");
+const compareJson = resolve("datasets/medcore-comparison-ab.json");
 
 console.log(`[scenarios] reading ${baselinePath}`);
 const raw = readFileSync(baselinePath, "utf8");

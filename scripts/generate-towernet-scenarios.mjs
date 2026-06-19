@@ -4,9 +4,10 @@
 // Reads towernet-50k-baseline.sql (already enforced) and emits two scenario
 // branches plus a pre-computed comparison JSON.
 //
-//   public/data/towernet-50k-scenario-a.sql  Emergency tower maintenance
-//   public/data/towernet-50k-scenario-b.sql  Proactive retention credits
-//   public/data/towernet-comparison-ab.json
+//   datasets/towernet-50k-scenario-a.sql  Emergency tower maintenance
+//   datasets/towernet-50k-scenario-b.sql  Proactive retention credits
+//   datasets/towernet-comparison-ab.json
+// (baseline INPUT stays public/data; scenario/comparison go to /datasets.)
 //
 // Pure INSERT-row mutation. No UPDATE/DELETE. Modeled on
 // generate-medcore-scenarios.mjs.
@@ -17,9 +18,9 @@ import { resolve } from "node:path";
 const baselinePath = resolve(
   process.argv[2] || "public/data/towernet-50k-baseline.sql"
 );
-const scenarioAPath = resolve("public/data/towernet-50k-scenario-a.sql");
-const scenarioBPath = resolve("public/data/towernet-50k-scenario-b.sql");
-const compareJson = resolve("public/data/towernet-comparison-ab.json");
+const scenarioAPath = resolve("datasets/towernet-50k-scenario-a.sql");
+const scenarioBPath = resolve("datasets/towernet-50k-scenario-b.sql");
+const compareJson = resolve("datasets/towernet-comparison-ab.json");
 
 console.log(`[scenarios] reading ${baselinePath}`);
 const raw = readFileSync(baselinePath, "utf8");

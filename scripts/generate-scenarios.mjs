@@ -3,10 +3,12 @@
 //
 // Reads novapay-5k-baseline.sql (already enforced) and emits two scenario
 // branches:
-//   public/data/novapay-5k-scenario-a.sql  Multi-currency shipped Q3
-//   public/data/novapay-5k-scenario-b.sql  SMB-only pivot
+//   datasets/novapay-5k-scenario-a.sql  Multi-currency shipped Q3
+//   datasets/novapay-5k-scenario-b.sql  SMB-only pivot
 // Plus a pre-computed metric comparison:
-//   public/data/novapay-comparison-ab.json
+//   datasets/novapay-comparison-ab.json
+// (baseline INPUT stays public/data; scenario/comparison are premium, served
+//  from /datasets via the authenticated /api/dataset route.)
 //
 // Same INSERT-row patching technique as the enforcer — no UPDATE / DELETE.
 
@@ -16,9 +18,9 @@ import { resolve } from "node:path";
 const baselinePath = resolve(
   process.argv[2] || "public/data/novapay-5k-baseline.sql"
 );
-const scenarioADir = resolve("public/data/novapay-5k-scenario-a.sql");
-const scenarioBDir = resolve("public/data/novapay-5k-scenario-b.sql");
-const compareDir = resolve("public/data/novapay-comparison-ab.json");
+const scenarioADir = resolve("datasets/novapay-5k-scenario-a.sql");
+const scenarioBDir = resolve("datasets/novapay-5k-scenario-b.sql");
+const compareDir = resolve("datasets/novapay-comparison-ab.json");
 
 console.log(`[scenarios] reading ${baselinePath}`);
 const raw = readFileSync(baselinePath, "utf8");

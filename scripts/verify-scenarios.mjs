@@ -46,8 +46,8 @@ FROM ent LEFT JOIN cc ON ent.id=cc.customer_id GROUP BY grp ORDER BY grp;`;
 
 for (const file of [
   "public/data/novapay-5k-baseline.sql",
-  "public/data/novapay-5k-scenario-a.sql",
-  "public/data/novapay-5k-scenario-b.sql",
+  "datasets/novapay-5k-scenario-a.sql",
+  "datasets/novapay-5k-scenario-b.sql",
 ]) {
   console.log(`\n===== ${file} =====`);
   const db = await load(file);
