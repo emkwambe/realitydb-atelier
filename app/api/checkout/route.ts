@@ -42,6 +42,27 @@ export async function POST(request: Request) {
     );
   }
 
+  // A Module subscription must name exactly one valid module so canAccess can
+  // scope it. Without this, a paid Module sub would store module_slug = null and
+  // unlock nothing. All-Access and other plans don't carry a module.
+  const VALID_MODULES = [
+    "novapay",
+    "medcore",
+    "supplylink",
+    "towernet",
+    "clearbank",
+    "oncocare",
+  ];
+  if (
+    plan.key === "module" &&
+    (!body.moduleSlug || !VALID_MODULES.includes(body.moduleSlug))
+  ) {
+    return NextResponse.json(
+      { error: "A valid module must be selected for the Module plan." },
+      { status: 400 }
+    );
+  }
+
   // Auth via Supabase SSR client.
   const sb = await getSupabaseServerClient();
   if (!sb) {

@@ -45,11 +45,12 @@ function SignupInner() {
   // user on /checkout/start once their email is confirmed.
   const planParam = params.get("plan");
   const billingParam = params.get("billing");
+  const moduleParam = params.get("module");
   const explicitNext = params.get("next");
   const next = explicitNext
     ? explicitNext
     : planParam
-      ? `/checkout/start?plan=${encodeURIComponent(planParam)}${billingParam ? `&billing=${encodeURIComponent(billingParam)}` : ""}`
+      ? `/checkout/start?plan=${encodeURIComponent(planParam)}${billingParam ? `&billing=${encodeURIComponent(billingParam)}` : ""}${moduleParam ? `&module=${encodeURIComponent(moduleParam)}` : ""}`
       : "/companies/novapay";
 
   const [fullName, setFullName] = useState("");

@@ -123,5 +123,10 @@ function buildUpgradeHref(
   if (reason === "not_signed_in") {
     return `/auth/login?next=${encodeURIComponent(`/companies/${slug}`)}`;
   }
-  return `/pricing?plan=module&module=${encodeURIComponent(slug)}`;
+  // Deep-link straight to checkout for THIS module so the correct module_slug is
+  // captured (avoids a wrong default on a generic pricing page). All-Access
+  // remains reachable from the top-nav /pricing link.
+  return `/checkout/start?plan=module&billing=annual&module=${encodeURIComponent(
+    slug
+  )}`;
 }

@@ -6,8 +6,21 @@ import { ArrowRight, Check } from "lucide-react";
 
 type BillingCycle = "monthly" | "annual";
 
+// The six modules a Module subscription can be scoped to. NovaPay is also the
+// free module, but it can still be subscribed to (unlocks its advanced
+// exercises + CEO briefing).
+const MODULES: { slug: string; label: string }[] = [
+  { slug: "novapay", label: "NovaPay — B2B SaaS Payments" },
+  { slug: "medcore", label: "MedCore Health — Revenue Cycle" },
+  { slug: "supplylink", label: "SupplyLink — Supply Chain" },
+  { slug: "towernet", label: "TowerNet — Telecom" },
+  { slug: "clearbank", label: "ClearBank — AML / Compliance" },
+  { slug: "oncocare", label: "OncoCare — Clinical Trial" },
+];
+
 export function IndividualSegment() {
   const [cycle, setCycle] = useState<BillingCycle>("annual");
+  const [selectedModule, setSelectedModule] = useState<string>("novapay");
 
   return (
     <section className="mt-20 md:mt-28">
@@ -61,6 +74,9 @@ export function IndividualSegment() {
           planKey="module"
           billing={cycle}
           accent="cyan"
+          modules={MODULES}
+          selectedModule={selectedModule}
+          onModuleChange={setSelectedModule}
         />
         <TierCard
           name="All-Access"
@@ -98,6 +114,10 @@ interface TierCardProps {
   billing: BillingCycle;
   accent: "cyan" | "green";
   featured?: boolean;
+  // When provided, renders a module picker and scopes checkout to the choice.
+  modules?: { slug: string; label: string }[];
+  selectedModule?: string;
+  onModuleChange?: (slug: string) => void;
 }
 
 function TierCard({
@@ -112,9 +132,17 @@ function TierCard({
   billing,
   accent,
   featured,
+  modules,
+  selectedModule,
+  onModuleChange,
 }: TierCardProps) {
   const accentColor = accent === "cyan" ? "#00f5d4" : "#06d6a0";
-  const href = `/checkout/start?plan=${planKey}&billing=${billing}`;
+  const href =
+    modules && selectedModule
+      ? `/checkout/start?plan=${planKey}&billing=${billing}&module=${encodeURIComponent(
+          selectedModule
+        )}`
+      : `/checkout/start?plan=${planKey}&billing=${billing}`;
   return (
     <div
       className={`relative flex flex-col gap-4 border bg-[#111827] p-6 transition ${
@@ -147,6 +175,24 @@ function TierCard({
           </li>
         ))}
       </ul>
+      {modules && onModuleChange && (
+        <div>
+          <label className="font-mono text-[11px] uppercase tracking-wider text-[#64748b]">
+            Choose your module
+          </label>
+          <select
+            value={selectedModule}
+            onChange={(e) => onModuleChange(e.target.value)}
+            className="mt-1 w-full border border-[#1e293b] bg-[#1a2235] px-3 py-2 text-sm text-[#e2e8f0] outline-none focus:border-[#06d6a0]"
+          >
+            {modules.map((m) => (
+              <option key={m.slug} value={m.slug}>
+                {m.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       <Link
         href={href}
         className={`mt-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium transition ${

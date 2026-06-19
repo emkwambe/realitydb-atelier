@@ -10,6 +10,7 @@ function CheckoutStartInner() {
   const router = useRouter();
   const planKey = params.get("plan");
   const billingCycle = params.get("billing") ?? "annual";
+  const moduleSlug = params.get("module");
 
   const [error, setError] = useState<string | null>(null);
 
@@ -24,13 +25,15 @@ function CheckoutStartInner() {
         const res = await fetch("/api/checkout", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ planKey, billingCycle }),
+          body: JSON.stringify({ planKey, billingCycle, moduleSlug }),
         });
         if (res.status === 401) {
           if (cancelled) return;
           // Not signed in — preserve the plan and bounce through signup.
           router.push(
-            `/auth/signup?plan=${encodeURIComponent(planKey)}&billing=${encodeURIComponent(billingCycle)}`
+            `/auth/signup?plan=${encodeURIComponent(planKey)}&billing=${encodeURIComponent(billingCycle)}${
+              moduleSlug ? `&module=${encodeURIComponent(moduleSlug)}` : ""
+            }`
           );
           return;
         }
@@ -52,7 +55,7 @@ function CheckoutStartInner() {
     return () => {
       cancelled = true;
     };
-  }, [planKey, billingCycle, router]);
+  }, [planKey, billingCycle, moduleSlug, router]);
 
   return (
     <div className="mx-auto flex min-h-[calc(100vh-7rem)] max-w-md flex-col items-center justify-center px-6 py-16 text-center">

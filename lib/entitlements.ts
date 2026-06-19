@@ -1,8 +1,14 @@
 // Module access policy. Phase 1: paywall disabled — always returns true.
-// Phase 2 (when ENABLE_PAYWALL=true): reads from purchases + subscriptions
-// to decide whether the learner can access intermediate/advanced exercises.
+// Phase 2 (when ENABLE_PAYWALL=true): NovaPay is the permanent free module
+// (beginner + intermediate free for any signed-in user); everything else —
+// NovaPay advanced, every CEO briefing, and all exercises in the other five
+// modules — requires a Module (scoped by module_slug) or All-Access subscription.
 
 import { getSupabaseAdminClient } from "@/lib/supabase";
+
+// NovaPay is the permanent free module. No module selection, no DB column — the
+// free module is hardcoded here.
+const FREE_MODULE_SLUG = "novapay";
 
 export type ExerciseDifficulty = "beginner" | "intermediate" | "advanced";
 
@@ -27,9 +33,10 @@ export interface AccessReason {
  * grading throughput. Stripe is wired so payment data starts accumulating
  * before any gate flips.
  *
- * Phase 2 contract (ENABLE_PAYWALL=true): beginner exercises are always free;
- * intermediate and advanced require an Individual Module/All-Access purchase,
- * a corporate seat, or an academic seat that covers the module slug.
+ * Phase 2 contract (ENABLE_PAYWALL=true): NovaPay beginner + intermediate are
+ * free for any signed-in user. NovaPay advanced + every CEO briefing, plus all
+ * exercises in the other five modules, require a Module subscription (scoped to
+ * that module via module_slug) or All-Access.
  */
 export async function canAccess(
   userId: string | null,
@@ -44,9 +51,14 @@ export async function canAccess(
   }
 
   // ---- Phase 2 logic below ----
-  // Beginner exercises stay free forever — they're the on-ramp and a
-  // discovery surface for prospective subscribers.
-  if (exerciseDifficulty === "beginner") {
+  // Free preview: NovaPay (the permanent free module) gives beginner AND
+  // intermediate exercises free to any signed-in user. NovaPay advanced and the
+  // CEO briefing require a subscription, and every other module is fully gated
+  // (intro page visible, but no exercise without a subscription).
+  if (
+    moduleSlug === FREE_MODULE_SLUG &&
+    (exerciseDifficulty === "beginner" || exerciseDifficulty === "intermediate")
+  ) {
     return { allowed: true, reason: "free_tier" };
   }
 
