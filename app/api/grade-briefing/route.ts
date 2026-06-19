@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { gateApi } from "@/lib/auth/access";
 import { novaPayRubric } from "@/content/companies/novapay/rubric";
 import { medcoreRubric } from "@/content/companies/medcore/rubric";
 import { supplylinkRubric } from "@/content/companies/supplylink/rubric";
@@ -71,6 +72,22 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: `Unsupported company: ${body.companyId}` },
       { status: 400 }
+    );
+  }
+
+  // Entitlement gate — the briefing is advanced tier. Enforced here so it cannot
+  // be bypassed from the client, and so we never spend Anthropic budget for a
+  // user who isn't entitled. With ENABLE_PAYWALL=false this returns allowed.
+  const gate = await gateApi(body.companyId, "advanced");
+  if (!gate.allowed) {
+    return NextResponse.json(
+      {
+        error:
+          gate.status === 401
+            ? "Sign in required."
+            : "This module requires a subscription.",
+      },
+      { status: gate.status }
     );
   }
 
