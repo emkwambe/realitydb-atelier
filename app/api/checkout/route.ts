@@ -14,6 +14,8 @@ export const dynamic = "force-dynamic";
 interface CheckoutRequest {
   planKey?: PlanKey;
   billingCycle?: BillingCycle;
+  // Company module slug for Individual "module" plans (e.g. 'novapay').
+  moduleSlug?: string;
 }
 
 export async function POST(request: Request) {
@@ -103,6 +105,7 @@ export async function POST(request: Request) {
       email: user.email ?? "",
       planKey,
       billingCycle,
+      moduleSlug: body.moduleSlug ?? null,
       stripeCustomerId,
       successUrl: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${origin}/checkout/cancel?plan=${encodeURIComponent(planKey)}&billing=${encodeURIComponent(billingCycle)}`,

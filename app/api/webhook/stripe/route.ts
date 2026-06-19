@@ -71,16 +71,25 @@ export async function POST(request: Request) {
 
         // Back-fill stripe_customer_id on profiles if not already set.
         if (stripeCustomerId) {
-          await admin
+          const { error } = await admin
             .from("profiles")
             .update({ stripe_customer_id: stripeCustomerId })
             .eq("id", userId)
             .is("stripe_customer_id", null);
+          if (error) {
+            // Non-fatal: the checkout route already persists stripe_customer_id,
+            // and the subscription upsert below stores it too. Log loudly but do
+            // not 500 — failing here must not block the subscription write.
+            console.error(
+              "[stripe-webhook] profiles stripe_customer_id backfill failed:",
+              describePgError(error)
+            );
+          }
         }
 
         if (session.mode === "payment") {
           // One-time purchase. Idempotent on stripe_checkout_session_id.
-          await admin.from("purchases").upsert(
+          const { error } = await admin.from("purchases").upsert(
             {
               user_id: userId,
               product: productLabel,
@@ -95,6 +104,9 @@ export async function POST(request: Request) {
             },
             { onConflict: "stripe_checkout_session_id", ignoreDuplicates: true }
           );
+          if (error) {
+            throw new Error(`purchases upsert failed: ${describePgError(error)}`);
+          }
         } else if (session.mode === "subscription" && session.subscription) {
           // Subscription created — we'll have a full snapshot via
           // customer.subscription.updated below, but seed the row now so the
@@ -132,7 +144,7 @@ export async function POST(request: Request) {
 
       case "customer.subscription.deleted": {
         const sub = event.data.object as Stripe.Subscription;
-        await admin
+        const { error } = await admin
           .from("subscriptions")
           .update({
             status: "canceled",
@@ -140,6 +152,11 @@ export async function POST(request: Request) {
             updated_at: new Date().toISOString(),
           })
           .eq("stripe_subscription_id", sub.id);
+        if (error) {
+          throw new Error(
+            `subscriptions cancel update failed: ${describePgError(error)}`
+          );
+        }
         break;
       }
 
@@ -151,10 +168,15 @@ export async function POST(request: Request) {
             ? charge.payment_intent
             : charge.payment_intent?.id ?? null;
         if (pi) {
-          await admin
+          const { error } = await admin
             .from("purchases")
             .update({ status: "refunded" })
             .eq("stripe_payment_intent_id", pi);
+          if (error) {
+            throw new Error(
+              `purchases refund update failed: ${describePgError(error)}`
+            );
+          }
         }
         break;
       }
@@ -168,13 +190,18 @@ export async function POST(request: Request) {
         const subId =
           typeof subRef === "string" ? subRef : subRef?.id ?? null;
         if (subId) {
-          await admin
+          const { error } = await admin
             .from("subscriptions")
             .update({
               status: "past_due",
               updated_at: new Date().toISOString(),
             })
             .eq("stripe_subscription_id", subId);
+          if (error) {
+            throw new Error(
+              `subscriptions past_due update failed: ${describePgError(error)}`
+            );
+          }
         }
         break;
       }
@@ -215,7 +242,15 @@ async function upsertSubscription(
   const periodStart = firstItem?.current_period_start ?? null;
   const periodEnd = firstItem?.current_period_end ?? null;
 
-  await admin
+  // module_slug scopes a "module" subscription to one company module. It is set
+  // on the subscription metadata at checkout; All-Access/empty → null.
+  const rawModuleSlug = sub.metadata?.module_slug;
+  const moduleSlug =
+    typeof rawModuleSlug === "string" && rawModuleSlug.length > 0
+      ? rawModuleSlug
+      : null;
+
+  const { error } = await admin
     .from("subscriptions")
     .upsert(
       {
@@ -224,6 +259,7 @@ async function upsertSubscription(
         stripe_customer_id: stripeCustomerId,
         stripe_subscription_id: sub.id,
         status: sub.status,
+        module_slug: moduleSlug,
         current_period_start:
           periodStart != null ? new Date(periodStart * 1000).toISOString() : null,
         current_period_end:
@@ -233,6 +269,30 @@ async function upsertSubscription(
       },
       { onConflict: "stripe_subscription_id" }
     );
+  if (error) {
+    throw new Error(`subscriptions upsert failed: ${describePgError(error)}`);
+  }
+}
+
+// Flattens a Supabase/PostgREST error into a single log-friendly line. The
+// `code` (e.g. 23503 FK, 23502 NOT NULL, 42501 RLS) plus `details`/`hint` are
+// what actually pinpoint a silent write failure, so surface all of them.
+function describePgError(error: unknown): string {
+  if (!error || typeof error !== "object") return String(error);
+  const e = error as {
+    message?: string;
+    code?: string;
+    details?: string;
+    hint?: string;
+  };
+  return [
+    e.message ?? "unknown error",
+    e.code ? `code=${e.code}` : null,
+    e.details ? `details=${e.details}` : null,
+    e.hint ? `hint=${e.hint}` : null,
+  ]
+    .filter(Boolean)
+    .join(" | ");
 }
 
 async function resolveUserIdFromCustomer(

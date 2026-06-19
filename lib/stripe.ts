@@ -32,6 +32,11 @@ interface CreateCheckoutSessionArgs {
   email: string;
   planKey: PlanKey;
   billingCycle: BillingCycle;
+  // For Individual "module" plans, the company module the learner is buying
+  // (e.g. 'novapay'). Persisted to subscriptions.module_slug by the webhook so
+  // canAccess() can scope a module subscription to one module. Null/omitted for
+  // All-Access and non-module plans.
+  moduleSlug?: string | null;
   stripeCustomerId?: string | null;
   successUrl: string;
   cancelUrl: string;
@@ -48,6 +53,7 @@ export async function createCheckoutSession({
   email,
   planKey,
   billingCycle,
+  moduleSlug,
   stripeCustomerId,
   successUrl,
   cancelUrl,
@@ -57,6 +63,9 @@ export async function createCheckoutSession({
     throw new Error(`Unknown plan ${planKey}/${billingCycle}`);
   }
   const priceId = priceIdForPlan(planKey, billingCycle);
+
+  // Only module plans carry a module slug; normalize everything else to "".
+  const moduleSlugValue = plan.key === "module" ? (moduleSlug ?? "") : "";
 
   const stripe = getStripeServerClient();
   const session = await stripe.checkout.sessions.create({
@@ -79,6 +88,7 @@ export async function createCheckoutSession({
       billing_cycle: plan.cycle,
       product_label: plan.product,
       segment: plan.segment,
+      module_slug: moduleSlugValue,
     },
     subscription_data: {
       metadata: {
@@ -87,6 +97,7 @@ export async function createCheckoutSession({
         billing_cycle: plan.cycle,
         product_label: plan.product,
         segment: plan.segment,
+        module_slug: moduleSlugValue,
       },
     },
   });

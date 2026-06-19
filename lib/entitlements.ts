@@ -56,15 +56,17 @@ export async function canAccess(
 
   const admin = getSupabaseAdminClient();
   if (!admin) {
-    // If admin client isn't available we fail open to keep students unblocked.
-    // Log and alert in real deployment.
-    return { allowed: true, reason: "paywall_disabled" };
+    // Fail CLOSED for paid (non-beginner) content: if we cannot verify
+    // entitlements we must not hand out access. Beginner exercises already
+    // returned free_tier above, so this only denies premium content.
+    return { allowed: false, reason: "no_entitlement" };
   }
 
-  // 1. All-Access subscription (any status that grants access)
+  // 1. All-Access subscription (any status that grants access) and 2. Module
+  // subscription scoped to the requested module via module_slug.
   const { data: subs } = await admin
     .from("subscriptions")
-    .select("product, status")
+    .select("product, status, module_slug")
     .eq("user_id", userId)
     .in("status", ["active", "trialing", "past_due"]);
 
@@ -74,17 +76,14 @@ export async function canAccess(
     );
     if (hasAllAccess) return { allowed: true, reason: "owns_allaccess" };
 
-    // Module subscription — covers the one module the learner chose.
-    // We store the chosen module slug on subscriptions.metadata in Phase 2.
-    const hasModule = subs.some((s) =>
-      String(s.product).toLowerCase().includes("module")
+    // Module subscription — grants access to exactly the one module the learner
+    // bought. module_slug is captured at checkout and persisted by the webhook.
+    const hasModuleForSlug = subs.some(
+      (s) =>
+        String(s.product).toLowerCase().includes("module") &&
+        s.module_slug === moduleSlug
     );
-    if (hasModule) {
-      // TODO Phase 2: read module_slug from subscriptions.metadata and verify
-      // it matches moduleSlug. For now any "Module" sub grants access.
-      void moduleSlug;
-      return { allowed: true, reason: "owns_module" };
-    }
+    if (hasModuleForSlug) return { allowed: true, reason: "owns_module" };
   }
 
   // 2. Cohort / org seat (corporate or academic) — Phase 2 will check
