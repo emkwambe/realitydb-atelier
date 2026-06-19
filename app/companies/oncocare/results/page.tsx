@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Award, CheckCircle2, Download, Copy, Share2, ArrowRight } from "lucide-react";
-import { oncocareRubric } from "@/content/companies/oncocare/rubric";
+import { RUBRIC_AXIS_META } from "@/lib/rubricAxisMeta";
 import { generateCertId, signCertificate, linkedInShareUrl, type BizCertificate } from "@/lib/certificate";
 
 const RESULT_KEY = "atelier:oncocare:result";
@@ -46,8 +46,8 @@ export default function ResultsPage() {
         userId: "preview",
         userName,
         userEmail: "preview@atelier.realitydb.dev",
-        company: oncocareRubric.company,
-        companyLabel: oncocareRubric.companyLabel,
+        company: "oncocare",
+        companyLabel: "OncoCare Therapeutics",
         score: result.overall_score,
         passed: true,
         issuedAt: new Date().toISOString(),
@@ -130,7 +130,7 @@ export default function ResultsPage() {
             <tbody>
               {(["segmentation","causal_reasoning","quantification","recommendation","epistemic_honesty"] as const).map((key) => {
                 const axis = result.axes[key];
-                const def = oncocareRubric.axes[key];
+                const def = RUBRIC_AXIS_META[key];
                 if (!axis || !def) return null;
                 return (
                   <tr key={key} className="border-t border-[#1e293b]/60">

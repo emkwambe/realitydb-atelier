@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Award, CheckCircle2, Download, Copy, Share2, ArrowRight } from "lucide-react";
-import { supplylinkRubric } from "@/content/companies/supplylink/rubric";
+import { RUBRIC_AXIS_META } from "@/lib/rubricAxisMeta";
 import { generateCertId, signCertificate, linkedInShareUrl, type BizCertificate } from "@/lib/certificate";
 
 const RESULT_KEY = "atelier:supplylink:result";
@@ -50,8 +50,8 @@ export default function ResultsPage() {
         userId: "preview",
         userName,
         userEmail: "preview@atelier.realitydb.dev",
-        company: supplylinkRubric.company,
-        companyLabel: supplylinkRubric.companyLabel,
+        company: "supplylink",
+        companyLabel: "SupplyLink Operations",
         score: result.overall_score,
         passed: true,
         issuedAt: new Date().toISOString(),
@@ -159,7 +159,7 @@ export default function ResultsPage() {
                 ] as const
               ).map((key) => {
                 const axis = result.axes[key];
-                const def = supplylinkRubric.axes[key];
+                const def = RUBRIC_AXIS_META[key];
                 if (!axis || !def) return null;
                 return (
                   <tr key={key} className="border-t border-[#1e293b]/60">

@@ -2,8 +2,14 @@ import Link from "next/link";
 import { ArrowRight, Database } from "lucide-react";
 import { supplylinkExercises } from "@/content/companies/supplylink/exercises";
 import { ExerciseNavStatic } from "@/components/exercise/ExerciseNavStatic";
+import { companyAccessMap } from "@/lib/auth/access";
 
-export default function SupplyLinkPage() {
+export default async function SupplyLinkPage() {
+  const access = await companyAccessMap("supplylink");
+  const lockedDifficulties = (
+    ["beginner", "intermediate", "advanced"] as const
+  ).filter((d) => !access[d].allowed);
+
   return (
     <div className="mx-auto max-w-[1280px] px-6 py-12 md:py-16">
       <section className="border border-[#1e293b] bg-[#111827] p-8 md:p-12">
@@ -63,7 +69,11 @@ export default function SupplyLinkPage() {
           </span>
         </div>
         <div className="mt-4 border border-[#1e293b] bg-[#111827]">
-          <ExerciseNavStatic exercises={supplylinkExercises} company="supplylink" />
+          <ExerciseNavStatic
+            exercises={supplylinkExercises}
+            company="supplylink"
+            lockedDifficulties={lockedDifficulties}
+          />
         </div>
       </section>
     </div>

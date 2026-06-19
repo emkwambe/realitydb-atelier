@@ -2,8 +2,14 @@ import Link from "next/link";
 import { ArrowRight, Database } from "lucide-react";
 import { medcoreExercises } from "@/content/companies/medcore/exercises";
 import { ExerciseNavStatic } from "@/components/exercise/ExerciseNavStatic";
+import { companyAccessMap } from "@/lib/auth/access";
 
-export default function MedCorePage() {
+export default async function MedCorePage() {
+  const access = await companyAccessMap("medcore");
+  const lockedDifficulties = (
+    ["beginner", "intermediate", "advanced"] as const
+  ).filter((d) => !access[d].allowed);
+
   return (
     <div className="mx-auto max-w-[1280px] px-6 py-12 md:py-16">
       <section className="border border-[#1e293b] bg-[#111827] p-8 md:p-12">
@@ -62,7 +68,11 @@ export default function MedCorePage() {
           </span>
         </div>
         <div className="mt-4 border border-[#1e293b] bg-[#111827]">
-          <ExerciseNavStatic exercises={medcoreExercises} company="medcore" />
+          <ExerciseNavStatic
+            exercises={medcoreExercises}
+            company="medcore"
+            lockedDifficulties={lockedDifficulties}
+          />
         </div>
       </section>
     </div>
