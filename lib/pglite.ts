@@ -58,8 +58,14 @@ const COMPANY_ROW_TOKEN: Record<string, string> = {
 };
 
 function datasetUrl(company: string, variant: DatasetVariant): string {
-  const token = COMPANY_ROW_TOKEN[company] ?? "5k";
-  return `/data/${company}-${token}-${variant}.sql`;
+  // Baseline is public and served statically from /data (anonymous Hot Cases
+  // and free beginner exercises load it). The premium variants (scenario-a/b)
+  // are served by the authenticated, entitlement-gated /api/dataset route.
+  if (variant === "baseline") {
+    const token = COMPANY_ROW_TOKEN[company] ?? "5k";
+    return `/data/${company}-${token}-baseline.sql`;
+  }
+  return `/api/dataset/${company}/${variant}`;
 }
 
 export async function initPGlite(

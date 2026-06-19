@@ -111,7 +111,7 @@ export function ComparisonPanel({ company = "novapay" }: { company?: string }) {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`/data/${company}-comparison-ab.json`);
+        const res = await fetch(`/api/dataset/${company}/comparison`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const j = (await res.json()) as ComparisonShape;
         if (!cancelled) setData(j);
