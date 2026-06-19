@@ -125,6 +125,23 @@ export async function POST(request: Request) {
 
     if (!res.ok) {
       const errText = await res.text();
+      // Resilience: a billing error (400 "credit balance too low") or any 5xx
+      // from Anthropic should not hard-fail grading. Fall back to the heuristic
+      // grader — same behavior as when the API key is absent — so the student
+      // still gets a score. Genuine client errors (bad key, malformed request)
+      // still surface as 502 so misconfiguration stays visible.
+      const isBilling =
+        res.status === 400 && /credit balance|too low|billing/i.test(errText);
+      const isServerError = res.status >= 500;
+      if (isBilling || isServerError) {
+        console.warn(
+          `[grade-briefing] Anthropic ${res.status}; falling back to heuristic:`,
+          errText.slice(0, 200)
+        );
+        return NextResponse.json(
+          heuristicGrade(body.companyId, body.briefingText, body.scenariosTested ?? [])
+        );
+      }
       return NextResponse.json(
         { error: `Anthropic API ${res.status}: ${errText.slice(0, 500)}` },
         { status: 502 }
@@ -147,10 +164,15 @@ export async function POST(request: Request) {
     }
     return NextResponse.json(parsed);
   } catch (e) {
+    // Network failure / exception reaching Anthropic — fall back to the
+    // heuristic grader rather than hard-failing, same as when the key is absent.
     const msg = e instanceof Error ? e.message : String(e);
+    console.warn(
+      "[grade-briefing] Anthropic call threw; falling back to heuristic:",
+      msg
+    );
     return NextResponse.json(
-      { error: `Grading failed: ${msg}` },
-      { status: 502 }
+      heuristicGrade(body.companyId, body.briefingText, body.scenariosTested ?? [])
     );
   }
 }
